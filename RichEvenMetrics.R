@@ -14,6 +14,14 @@ totcov<-dat%>%
 relcov<-merge(totcov, dat, by=c("block", "site", "plot", "trt"))%>%
   mutate(relcov=(cover/totcov)*100)
 
+prob<-relcov%>%
+  filter(totcov==0)%>%
+  select(block, site, plot)%>%
+  unique()
+
+    
+  )
+
 data1<-relcov%>%
   mutate(unid=paste(block, site, plot, trt, sep="::"))%>%
   filter(totcov!=0)
