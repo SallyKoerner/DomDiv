@@ -73,6 +73,22 @@ ggplot(data=commClimateSite, aes(x=datAI, y=richness)) +
 
 ggplot(data=commClimateSite, aes(x=datAI, y=Evar)) +
   geom_point() +
-  facet_wrap(~block_trt, scales='free') +
+  facet_wrap(~block_trt) +
   xlab('Aridity') + ylab('Evar')
 
+#vs MAP
+ggplot(data=commClimateSite, aes(x=bio12, y=richness)) +
+  geom_point() +
+  facet_wrap(~block_trt, scales='free') +
+  xlab('MAP') + ylab('Richness')
+
+ggplot(data=commClimateSite, aes(x=bio12, y=Evar)) +
+  geom_point() +
+  facet_wrap(~block_trt, scales='free') +
+  xlab('MAP') + ylab('Evar')
+
+#rich vs Evar
+ggplot(data=commClimateSite, aes(x=richness, y=Evar)) +
+  geom_point() +
+  facet_wrap(~block_trt, scales='free') +
+  xlab('richness') + ylab('Evar')
