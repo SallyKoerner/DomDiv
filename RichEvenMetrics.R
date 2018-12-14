@@ -1,7 +1,10 @@
 library(tidyverse)
 library(codyn)
+library(gridExtra)
 
 setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
+
+theme_set(theme_bw(12))
 
 dat<-read.csv("AllData_11Dec2018.csv")%>%
   select(-X)%>%
@@ -24,7 +27,7 @@ plots <- dat%>%
   mutate(plot_size=quadrat.width*quadrat.length)%>%
   #create block_trt column to account for grazing and plot size differences for a few sites
   mutate(block_trt=as.factor(ifelse(block=='Tibet'&trt=='G', 'Tibet_grazed', ifelse(block=='Tibet'&trt=='U', 'Tibet_ungrazed', ifelse(block=='SAmerica'&trt=='G', 'SAmerica_grazed', ifelse(block=='SAmerica'&trt=='U', 'SAmerica_ungrazed', ifelse(block=='Canada'&trt=='in', 'Canada_ungrazed', ifelse(block=='Canada'&trt=='out', 'Canada_grazed', ifelse(block=='AUS'&plot_size==100, 'AUS_100_m2', ifelse(block=='AUS'&plot_size==900, 'AUS_900_m2', ifelse(block=='AUS'&plot_size==2500, 'AUS_2500_m2', as.character(block))))))))))))%>%
-  filter(block_trt!='AUS'&block!="Canada") #drops Australian plots that are mis-sized (very uncommon compared to standard sizes) and drops canada
+  filter(block!="Canada"&block!='Tanzania'&block!='AUS'&block_trt!='SAmerica_grazed'&block_trt!='Tibet_grazed') #drops datasets we no longer want to include
 
 china <- plots%>%
   filter(block_trt=='China')%>%
@@ -48,12 +51,13 @@ plotssubset <- plots%>%
   rbind(china)%>%
   rbind(brazil)
 
-write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse.csv", row.names = F)
+#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse.csv", row.names = F)
 
 ##merge these plots in with the community data
 data_subset<-dat%>%
   right_join(plotssubset)
 
+write.csv(data_subset, "subet_raw_data.csv", row.names = F)
 
 #calc relative cover
 totcov<-data_subset%>%
@@ -66,26 +70,77 @@ relcov<-dat%>%
   mutate(relcov=(cover/totcov)*100)%>%
   mutate(unid=paste(block_trt, site, plot, trt, sep="::"))
 
-
-rich_evar_plot<-community_structure(relcov, abundance.var = "relcov", replicate.var = "unid", metric = "Evar")%>%
-  separate(unid, into=c("block_trt", "site", "plot", "trt"), sep="::")
-
-pairs(rich_evar_plot[,5:6])
-
-write.csv(rich_evar_plot, "community_metrics_plot_Dec2018.csv", row.names=F)
-
 ##doing with an average for each plot.
 spave<-relcov%>%
   group_by(block_trt, site, species)%>%
   summarize(ave_relcov=mean(relcov))%>%
   mutate(unid=paste(block_trt, site, sep="::"))
 
+export<-spave%>%
+  left_join(key)%>%
+  left_join(climate)%>%
+  select(-unid)
+
+#write.csv(export, "single_racs_climate_Dec2018.csv", row.names = F)
+
 rich_evar_single<-community_structure(spave, abundance.var = "ave_relcov", replicate.var = "unid", metric = "Evar")%>%
-  separate(unid, into=c("block_trt", "site"), sep="::")
+  separate(unid, into=c("block_trt", "site"), sep="::")%>%
+  left_join(key)%>%
+  left_join(climate)%>%
+  filter(richness>4)
+
+numplots<-data.frame(block_trt=c("Brazil","China", "India","Kenya","NAmerica","SAfrica", "SAmerica_ungrazed", "Tibet_ungrazed"), numplots=c(10,39,9,1,20,20,3,5))
+
+plotnum<-rich_evar_single%>%
+  right_join(numplots)%>%
+  group_by(block_trt)%>%
+  mutate(srich=scale(richness),
+         sevar = scale(Evar))
+
+
+summary(lm(richness~numplots, data=plotnum))
+r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
+  geom_point(aes(color=block_trt))+
+  geom_smooth(method="lm", color="black", se=F)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+summary(lm(Evar~numplots, data=plotnum))
+e<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
+  geom_point(aes(color=block_trt))+
+  geom_smooth(method="lm", color="black", se=F)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+grid.arrange(r,e, ncol=2)
+
+
+summary(lm(srich~numplots, data=plotnum))
+sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
+  geom_point(aes(color=block_trt))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+summary(lm(sevar~numplots, data=plotnum))
+se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
+  geom_point(aes(color=block_trt))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+
+grid.arrange(sr,se, ncol=2)
+
+grid.arrange(r,e, ncol=2)
+
 
 pairs(rich_evar_single[,3:4])
 
-write.csv(rich_evar_single, "community_metrics_single_Dec2018.csv", row.names=F)
+write.csv(rich_evar_single, "community_metrics_single_climate_Dec2018.csv", row.names=F)
+
+
+###we have decided to not do it this way. We are not going to average the richness and evenness of each plot
+# rich_evar_plot<-community_structure(relcov, abundance.var = "relcov", replicate.var = "unid", metric = "Evar")%>%
+#   separate(unid, into=c("block_trt", "site", "plot", "trt"), sep="::")
+# 
+# pairs(rich_evar_plot[,5:6])
+# 
+# write.csv(rich_evar_plot, "community_metrics_plot_Dec2018.csv", row.names=F)
 
 #investigating the relationship richness and evennenss
 cor<-rich_evar%>%
