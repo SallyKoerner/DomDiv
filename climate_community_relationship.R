@@ -3,6 +3,7 @@ setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\
 library(grid)
 library(knitr)
 library(kableExtra)
+library(lme4)
 library(tidyverse)
 
 
@@ -82,6 +83,13 @@ richnessModelTable <- richnessModels%>%
 kable(richnessModelTable, 'html')%>%
   cat(., file = "richnessModelTable.html")
 
+#quadratic model - AIC=522.5965
+summary(quadraticRichnessModel <- lmer(richness_scale~poly(datAI,2) + (1|block_trt), commSite))
+AIC(quadraticRichnessModel)
+#linear model - AIC=543.6281
+summary(linearRichnessModel <- lmer(richness_scale~datAI + (1|block_trt), commSite))
+AIC(linearRichnessModel)
+
 evarModels <- commSite%>%
   group_by(block_trt)%>%
   do(model = lm(Evar_scale ~ datAI, data = .))%>%
@@ -116,9 +124,11 @@ kable(compareModelTable, 'html')%>%
 #model slopes vs aridity (comparing across blocks)
 #richness
 richnessAllFig <- ggplot(data=commSite, aes(x=datAI, y=richness_scale, color=block_trt)) +
-  geom_point() +
   xlab('Aridity') + ylab('Scaled Richness') +
-  geom_smooth(method='lm') +
+  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Tibet_ungrazed'), method='lm', fill='#DCDCDC', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China'|block_trt=='Kenya'|block_trt=='SAmerica_ungrazed'), method='lm', fill='#DCDCDC', linetype='dashed', se=F) +
+  geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
+  geom_point(size=5) +
   theme(legend.position='none')
 
 summary(lm(slope~geo_mean_AI, data=richnessModels))
@@ -169,8 +179,9 @@ print(evennessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color=block_trt)) +
   geom_point() +
   xlab('Scaled Richness') + ylab('Scaled Evar') +
-  geom_smooth(method='lm') +
-  theme(legend.position='none')
+  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='Brazil'|block_trt=='NAmerica'), method='lm') +
+  theme(legend.position='none') +
+  facet_wrap(~block_trt)
 
 summary(lm(slope~geo_mean_AI, data=compareModels))
 summary(lm(slope~geo_mean_AI, data=subset(compareModels, block_trt!='China')))
