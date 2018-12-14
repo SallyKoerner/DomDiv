@@ -21,8 +21,9 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
 #import community metrics - site level (single RAC for a site)
 commSite <- read.csv('community_metrics_single_climate_Dec2018.csv')%>%
   group_by(block_trt)%>%
-  mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), SimpD_scale=scale(SimpD), BP_scale=scale(BP_D))%>%
-  ungroup()
+  mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
+  ungroup()%>%
+  filter(block_trt!='China') #only 4 datapoints
 
 
 
@@ -34,7 +35,7 @@ gm_mean = function(x, na.rm=TRUE){
 
 climate <- commSite%>%
   group_by(block_trt)%>%
-  summarise(min_AI=min(datAI), max_AI=max(datAI), mean_AI=mean(datAI), geo_mean_AI=gm_mean(datAI))%>%
+  summarise(min_AI=min(ai), max_AI=max(ai), mean_AI=mean(ai), geo_mean_AI=gm_mean(ai))%>%
   ungroup()%>%
   mutate(midpoint_AI=(min_AI+max_AI)/2)
 
@@ -45,7 +46,7 @@ climate <- commSite%>%
 #richness models
 richnessModels <- commSite%>%
   group_by(block_trt)%>%
-  do(model = lm(richness_scale ~ datAI, data = .))%>%
+  do(model = lm(richness_scale ~ ai, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)%>%
   mutate(slope_sig=ifelse(pval>0.05, 0, slope))
@@ -56,18 +57,18 @@ richnessModelTable <- richnessModels%>%
 kable(richnessModelTable, 'html')%>%
   cat(., file = "richnessModelTable.html")
 
-#quadratic model - AIC=522.5965
-summary(quadraticRichnessModel <- lmer(richness_scale~poly(datAI,2) + (1|block_trt), commSite))
+#quadratic model - AIC=529.1192
+summary(quadraticRichnessModel <- lmer(richness_scale~poly(ai,2) + (1|block_trt), commSite))
 AIC(quadraticRichnessModel)
-#linear model - AIC=543.6281
-summary(linearRichnessModel <- lmer(richness_scale~datAI + (1|block_trt), commSite))
+#linear model - AIC=549.3088
+summary(linearRichnessModel <- lmer(richness_scale~ai + (1|block_trt), commSite))
 AIC(linearRichnessModel)
 
 
 #evenness models
 evarModels <- commSite%>%
   group_by(block_trt)%>%
-  do(model = lm(Evar_scale ~ datAI, data = .))%>%
+  do(model = lm(Evar_scale ~ ai, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
@@ -85,17 +86,17 @@ compareEvenModels <- commSite%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
-compareModelTable <- compareModels%>%
+compareEvenModelTable <- compareEvenModels%>%
   select(block_trt, f, df_num, df_den, pval, R2, slope)%>%
   rename(Block=block_trt)
-kable(compareModelTable, 'html')%>%
-  cat(., file = "compareModelTable.html")
+kable(compareEvenModelTable, 'html')%>%
+  cat(., file = "compareEvenModelTable")
 
 
 #dominance models
 domModels <- commSite%>%
   group_by(block_trt)%>%
-  do(model = lm(BP_scale ~ datAI, data = .))%>%
+  do(model = lm(BP_scale ~ ai, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
@@ -105,26 +106,26 @@ domModelTable <- domModels%>%
 kable(domModelTable, 'html')%>%
   cat(., file = "domModelTable.html")
 
-#quadratic model - AIC=533.8161
-summary(quadraticDominanceModel <- lmer(SimpD_scale~poly(datAI,2) + (1|block_trt), commSite))
+#quadratic model - AIC=540.8531
+summary(quadraticDominanceModel <- lmer(BP_scale~poly(ai,2) + (1|block_trt), commSite))
 AIC(quadraticDominanceModel)
-#linear model - AIC=543.8421
-summary(linearDominanceModel <- lmer(SimpD_scale~datAI + (1|block_trt), commSite))
+#linear model - AIC=548.8107
+summary(linearDominanceModel <- lmer(BP_scale~ai + (1|block_trt), commSite))
 AIC(linearDominanceModel)
 
 
 #compare richness and dominance
-compareModels <- commSite%>%
+compareDomModels <- commSite%>%
   group_by(block_trt)%>%
   do(model = lm(BP_scale ~ richness_scale, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
-compareModelTable <- compareModels%>%
+compareDomModelTable <- compareDomModels%>%
   select(block_trt, f, df_num, df_den, pval, R2, slope)%>%
   rename(Block=block_trt)
-kable(compareModelTable, 'html')%>%
-  cat(., file = "compareModelTable.html")
+kable(compareDomModelTable, 'html')%>%
+  cat(., file = "compareDomModelTable")
 
 
 
@@ -133,10 +134,10 @@ kable(compareModelTable, 'html')%>%
 
 #model slopes vs aridity (comparing across blocks)
 #richness
-richnessAllFig <- ggplot(data=commSite, aes(x=datAI, y=richness_scale, color=block_trt)) +
+richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=block_trt)) +
   xlab('Aridity') + ylab('Scaled Richness') +
-  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Tibet_ungrazed'), method='lm', fill='#DCDCDC', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China'|block_trt=='Kenya'|block_trt=='SAmerica_ungrazed'), method='lm', fill='#DCDCDC', linetype='dashed', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='Kenya'|block_trt=='SAmerica_ungrazed'), method='lm', linetype='dashed', se=F) +
   geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
   geom_point(size=5) +
   theme(legend.position='none')
@@ -150,7 +151,7 @@ richnessSlopeFig <- ggplot(data=richnessModels, aes(x=geo_mean_AI, y=slope, colo
   xlab('Aridity') + ylab('Slope of Richness v Aridity') +
   geom_hline(yintercept=0) +
   geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.4, y=6, label = "R2=0.526,\np=0.042", size=8)
+  annotate("text", x=1.4, y=6, label = "R2=0.530,\np=0.041", size=8)
 
 #richness figure
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -160,10 +161,11 @@ print(richnessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 
 
 #Evar
-evennessAllFig <- ggplot(data=commSite, aes(x=datAI, y=Evar_scale, color=block_trt)) +
-  geom_point() +
+evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=block_trt)) +
+  geom_point(size=5) +
   xlab('Aridity') + ylab('Scaled Evar') +
-  geom_smooth(method='lm') +
+  geom_smooth(data=subset(commSite, block_trt=='India'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', linetype='dashed', se=F) +
   theme(legend.position='none')
 
 summary(lm(slope~geo_mean_AI, data=evarModels))
@@ -175,7 +177,7 @@ evennessSlopeFig <- ggplot(data=evarModels, aes(x=geo_mean_AI, y=slope, color=bl
   xlab('Aridity') + ylab('Slope of Evar v Aridity') +
   geom_hline(yintercept=0) +
   # geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=4, label = "R2=0.022,\np=0.725", size=8)
+  annotate("text", x=1.2, y=4, label = "R2=0.012,\np=0.793", size=8)
 
 #Evar figure
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -185,13 +187,12 @@ print(evennessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 
 
 #dominance
-dominanceAllFig <- ggplot(data=commSite, aes(x=datAI, y=BP_scale, color=block_trt)) +
+dominanceAllFig <- ggplot(data=commSite, aes(x=ai, y=BP_scale, color=block_trt)) +
   xlab('Aridity') + ylab('Scaled Dominance') +
   geom_smooth(data=subset(commSite, block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China'), method='lm', linetype='dashed', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China2'), method='lm', linetype='dashed', se=F) +
   geom_point(size=5) +
-  theme(legend.position='none') +
-  facet_wrap(~block_trt)
+  theme(legend.position='none')
 
 summary(lm(slope~geo_mean_AI, data=domModels))
 
@@ -202,7 +203,7 @@ dominanceSlopeFig <- ggplot(data=domModels, aes(x=geo_mean_AI, y=slope, color=bl
   xlab('Aridity') + ylab('Slope of Dominance v Aridity') +
   geom_hline(yintercept=0) +
   # geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=-4, label = "R2=0.438,\np=0.074", size=8)
+  annotate("text", x=1.2, y=-4, label = "R2=0.403,\np=0.091", size=8)
 
 #dominance figure
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -221,7 +222,6 @@ compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color
   facet_wrap(~block_trt)
 
 summary(lm(slope~geo_mean_AI, data=compareModels))
-summary(lm(slope~geo_mean_AI, data=subset(compareModels, block_trt!='China')))
 
 compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
   geom_point(size=5) +
@@ -229,8 +229,7 @@ compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, co
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
   xlab('Aridity') + ylab('Slope of Evar v Richness') +
   geom_hline(yintercept=0) +
-  geom_smooth(data=subset(compareModels, block_trt!='China'), method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=-0.5, label = "R2=0.292,\np=0.166\nR2=0.798,\np=0.007", size=8)
+  annotate("text", x=1.2, y=-0.5, label = "R2=0.90,\np=0.434", size=8)
 
 #comparison figure
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -245,7 +244,6 @@ compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=BP_scale, color=b
   geom_point() +
   xlab('Scaled Richness') + ylab('Scaled Dominance') +
   geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='Kenya'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
-  # geom_smooth(data=subset(commSite, block_trt=='China'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'|block_trt=='NAmerica'), method='lm', linetype='dashed', se=F) +
   theme(legend.position='none') +
   facet_wrap(~block_trt)
 
@@ -257,7 +255,7 @@ compareSlopeFig <- ggplot(data=compareModels, aes(x=geo_mean_AI, y=slope, color=
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
   xlab('Aridity') + ylab('Slope of Dominance v Richness') +
   geom_hline(yintercept=0) +
-  annotate("text", x=1.4, y=-0.1, label = "R2=0.008,\np=0.829", size=8)
+  annotate("text", x=1.4, y=-1, label = "R2=0.090,\np=0.434", size=8)
 
 #comparison figure
 pushViewport(viewport(layout=grid.layout(1,2)))
