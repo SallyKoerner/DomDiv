@@ -6,7 +6,7 @@ setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
 
 theme_set(theme_bw(12))
 
-dat<-read.csv("AllData_11Dec2018.csv")%>%
+dat<-read.csv("AllData_13Dec2018.csv")%>%
   select(-X)%>%
   filter(plot!="")
 
@@ -57,7 +57,7 @@ plotssubset <- plots%>%
 data_subset<-dat%>%
   right_join(plotssubset)
 
-write.csv(data_subset, "subet_raw_data.csv", row.names = F)
+#write.csv(data_subset, "subet_raw_data.csv", row.names = F)
 
 #calc relative cover
 totcov<-data_subset%>%
@@ -89,72 +89,97 @@ rich_evar_single<-community_structure(spave, abundance.var = "ave_relcov", repli
   left_join(climate)%>%
   filter(richness>4)
 
-SimpD<-function(x, S=length(x[x!=0]), N=sum(x[x!=0]), ps=x[x!=0]/N, p2=ps*ps ){
-  D<-sum(p2)
-  D
-}
 
-Dom<-spave%>%
+BP<-spave%>%
   group_by(block_trt, site)%>%
-  summarise(SimpD=SimpD(ave_relcov),
-            BP_D=max(ave_relcov))%>%
-  filter(richness>4)
+  summarise(BP_D=max(ave_relcov))
 
 ###see how dominance and eveness are related
 
 domeven<-rich_evar_single%>%
-  left_join(Dom)
+  left_join(BP)
 
 write.csv(domeven, "community_metrics_single_climate_Dec2018.csv", row.names=F)
 
 ###dominace is different than Evar. We will try doing these tests with these.
-with(domeven, cor.test(Evar, SimpD))
-with(domeven, cor.test(Evar, BP_D))
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor) 
+{  usr <- par("usr"); on.exit(par(usr)) 
+  par(usr = c(0, 1, 0, 1)) 
+  r <- abs(cor(x, y)) 
+  txt <- format(c(r, 0.123456789), digits=digits)[1] 
+  txt <- paste(prefix, txt, sep="") 
+  if(missing(cex.cor)) cex <- 0.8/strwidth(txt) 
+    test <- cor.test(x,y) 
+    text(0.5, 0.5, txt, cex = 2) 
+  text(.8, .8, "*", cex=4, col="red") 
+}
 
-with(domeven, plot(Evar, SimpD))
-with(domeven, plot(Evar, BP_D))
+pairs(domeven[,c(3,4,39)], lower.panel=panel.smooth, upper.panel=panel.cor)
 
-pairs(domeven[,c(3,4,40,41)])
 
 #see how number of plots change these relationships
-numplots<-data.frame(block_trt=c("Brazil","China", "India","Kenya","NAmerica","SAfrica", "SAmerica_ungrazed", "Tibet_ungrazed"), numplots=c(10,39,9,1,20,20,3,5))
+numplots<-data.frame(block_trt=c("Brazil","China2", "India","Kenya","NAmerica","SAfrica", "SAmerica_ungrazed", "Tibet_ungrazed"), numplots=c(10,6,9,1,20,20,3,5))
 
-plotnum<-rich_evar_single%>%
+plotnum<-domeven%>%
   right_join(numplots)%>%
   group_by(block_trt)%>%
   mutate(srich=scale(richness),
-         sevar = scale(Evar))
+         sevar = scale(Evar),
+         sdom = scale(BP_D))
 
 
 summary(lm(richness~numplots, data=plotnum))
 r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
   geom_point(aes(color=block_trt))+
+  scale_color_brewer(palette="Set1")+
   geom_smooth(method="lm", color="black", se=F)+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("Number of Plots")+
+  ylab("Richness")
 
 summary(lm(Evar~numplots, data=plotnum))
 e<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
   geom_point(aes(color=block_trt))+
+  scale_color_brewer(palette="Set1")+
   geom_smooth(method="lm", color="black", se=F)+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("Number of Plots")+
+  ylab("Evenness")
 
-grid.arrange(r,e, ncol=2)
-
+summary(lm(BP_D~numplots, data=plotnum))
+d<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
+  geom_point(aes(color=block_trt))+
+  scale_color_brewer(palette="Set1")+
+  geom_smooth(method="lm", color="black", se=F)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("Number of Plots")+
+  ylab("Dominance")
 
 summary(lm(srich~numplots, data=plotnum))
 sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
   geom_point(aes(color=block_trt))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  scale_color_brewer(palette="Set1")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  ylab("Scaled Richness")+
+  xlab("Number of Plots")
 
 summary(lm(sevar~numplots, data=plotnum))
 se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
   geom_point(aes(color=block_trt))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  scale_color_brewer(palette="Set1")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  ylab("Scaled Evenness")+
+  xlab("Number of Plots")
 
+summary(lm(sdom~numplots, data=plotnum))
+sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
+  geom_point(aes(color=block_trt))+
+  scale_color_brewer(palette="Set1")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  ylab("Scaled Dominance")+
+  xlab("Number of Plots")
 
-grid.arrange(sr,se, ncol=2)
-
-grid.arrange(r,e, ncol=2)
+grid.arrange(r,e,d, sr,se,sd, ncol=3)
 
 
 pairs(rich_evar_single[,3:4])
