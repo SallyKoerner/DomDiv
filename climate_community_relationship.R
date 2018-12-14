@@ -79,7 +79,7 @@ kable(evarModelTable, 'html')%>%
 
 
 #compare richness and evenness
-compareModels <- commSite%>%
+compareEvenModels <- commSite%>%
   group_by(block_trt)%>%
   do(model = lm(Evar_scale ~ richness_scale, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
@@ -126,6 +126,10 @@ compareModelTable <- compareModels%>%
 kable(compareModelTable, 'html')%>%
   cat(., file = "compareModelTable.html")
 
+
+
+
+###FIGURES!
 
 #model slopes vs aridity (comparing across blocks)
 #richness
@@ -219,7 +223,7 @@ compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color
 summary(lm(slope~geo_mean_AI, data=compareModels))
 summary(lm(slope~geo_mean_AI, data=subset(compareModels, block_trt!='China')))
 
-compareSlopeFig <- ggplot(data=compareModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
+compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
   geom_point(size=5) +
   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
