@@ -89,6 +89,34 @@ rich_evar_single<-community_structure(spave, abundance.var = "ave_relcov", repli
   left_join(climate)%>%
   filter(richness>4)
 
+SimpD<-function(x, S=length(x[x!=0]), N=sum(x[x!=0]), ps=x[x!=0]/N, p2=ps*ps ){
+  D<-sum(p2)
+  D
+}
+
+Dom<-spave%>%
+  group_by(block_trt, site)%>%
+  summarise(SimpD=SimpD(ave_relcov),
+            BP_D=max(ave_relcov))%>%
+  filter(richness>4)
+
+###see how dominance and eveness are related
+
+domeven<-rich_evar_single%>%
+  left_join(Dom)
+
+write.csv(domeven, "community_metrics_single_climate_Dec2018.csv", row.names=F)
+
+###dominace is different than Evar. We will try doing these tests with these.
+with(domeven, cor.test(Evar, SimpD))
+with(domeven, cor.test(Evar, BP_D))
+
+with(domeven, plot(Evar, SimpD))
+with(domeven, plot(Evar, BP_D))
+
+pairs(domeven[,c(3,4,40,41)])
+
+#see how number of plots change these relationships
 numplots<-data.frame(block_trt=c("Brazil","China", "India","Kenya","NAmerica","SAfrica", "SAmerica_ungrazed", "Tibet_ungrazed"), numplots=c(10,39,9,1,20,20,3,5))
 
 plotnum<-rich_evar_single%>%
@@ -131,7 +159,7 @@ grid.arrange(r,e, ncol=2)
 
 pairs(rich_evar_single[,3:4])
 
-write.csv(rich_evar_single, "community_metrics_single_climate_Dec2018.csv", row.names=F)
+
 
 
 ###we have decided to not do it this way. We are not going to average the richness and evenness of each plot
