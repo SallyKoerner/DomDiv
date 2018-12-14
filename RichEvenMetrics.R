@@ -27,7 +27,7 @@ plots <- dat%>%
   mutate(plot_size=quadrat.width*quadrat.length)%>%
   #create block_trt column to account for grazing and plot size differences for a few sites
   mutate(block_trt=as.factor(ifelse(block=='Tibet'&trt=='G', 'Tibet_grazed', ifelse(block=='Tibet'&trt=='U', 'Tibet_ungrazed', ifelse(block=='SAmerica'&trt=='G', 'SAmerica_grazed', ifelse(block=='SAmerica'&trt=='U', 'SAmerica_ungrazed', ifelse(block=='Canada'&trt=='in', 'Canada_ungrazed', ifelse(block=='Canada'&trt=='out', 'Canada_grazed', ifelse(block=='AUS'&plot_size==100, 'AUS_100_m2', ifelse(block=='AUS'&plot_size==900, 'AUS_900_m2', ifelse(block=='AUS'&plot_size==2500, 'AUS_2500_m2', as.character(block))))))))))))%>%
-  filter(block!="Canada"&block!='Tanzania'&block!='AUS'&block_trt!='SAmerica_grazed'&block_trt!='Tibet_grazed') #drops datasets we no longer want to include
+  filter(block!="Canada"&block!='Tanzania'&block!='AUS'&block_trt!='SAmerica_grazed'&block_trt!='Tibet_grazed'&site!="Tibet_Site1_Amdo_Bang'ai"&site!="Tibet_Site6_Shuanghu_Beicuo") #drops datasets we no longer want to including two tibetan sites that are missing 2 of the 5 plots
 
 china <- plots%>%
   filter(block_trt=='China')%>%
@@ -46,12 +46,17 @@ brazil <- plots%>%
   rename(Site_num=rep)%>%
   select(-region, -CCA)
 
-plotssubset <- plots%>%
-  filter(block_trt!='China'&block_trt!='Brazil')%>%
-  rbind(china)%>%
-  rbind(brazil)
+samerica <- plots%>%
+  filter(block_trt=='SAmerica_ungrazed')%>%
+  filter(plot!='4', plot!="5") #subsetting out two of the plots from only two sites which had 5 transects instead of 3
 
-#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse.csv", row.names = F)
+plotssubset <- plots%>%
+  filter(block_trt!='China'&block_trt!='Brazil'&block_trt!='SAmerica_ungrazed')%>%
+  rbind(china)%>%
+  rbind(brazil)%>%
+  rbind(samerica)
+
+#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse_14Dec2018.csv", row.names = F)
 
 ##merge these plots in with the community data
 data_subset<-dat%>%
