@@ -21,7 +21,7 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
 #import community metrics - site level (single RAC for a site)
 commSite <- read.csv('community_metrics_single_climate_Dec2018.csv')%>%
   group_by(block_trt)%>%
-  mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), SimpD_scale=scale(SimpD))%>%
+  mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), SimpD_scale=scale(SimpD), BP_scale=scale(BP_D))%>%
   ungroup()
 
 
@@ -95,7 +95,7 @@ kable(compareModelTable, 'html')%>%
 #dominance models
 domModels <- commSite%>%
   group_by(block_trt)%>%
-  do(model = lm(SimpD_scale ~ datAI, data = .))%>%
+  do(model = lm(BP_scale ~ datAI, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
@@ -116,7 +116,7 @@ AIC(linearDominanceModel)
 #compare richness and dominance
 compareModels <- commSite%>%
   group_by(block_trt)%>%
-  do(model = lm(SimpD_scale ~ richness_scale, data = .))%>%
+  do(model = lm(BP_scale ~ richness_scale, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
@@ -181,13 +181,13 @@ print(evennessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 
 
 #dominance
-dominanceAllFig <- ggplot(data=commSite, aes(x=datAI, y=SimpD_scale, color=block_trt)) +
+dominanceAllFig <- ggplot(data=commSite, aes(x=datAI, y=BP_scale, color=block_trt)) +
   xlab('Aridity') + ylab('Scaled Dominance') +
-  geom_smooth(data=subset(commSite, block_trt=='China'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'), method='lm', linetype='dashed', se=F) +
-  geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
+  geom_smooth(data=subset(commSite, block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China'), method='lm', linetype='dashed', se=F) +
   geom_point(size=5) +
-  theme(legend.position='none')
+  theme(legend.position='none') +
+  facet_wrap(~block_trt)
 
 summary(lm(slope~geo_mean_AI, data=domModels))
 
@@ -198,7 +198,7 @@ dominanceSlopeFig <- ggplot(data=domModels, aes(x=geo_mean_AI, y=slope, color=bl
   xlab('Aridity') + ylab('Slope of Dominance v Aridity') +
   geom_hline(yintercept=0) +
   # geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=-4, label = "R2=0.417,\np=0.084", size=8)
+  annotate("text", x=1.2, y=-4, label = "R2=0.438,\np=0.074", size=8)
 
 #dominance figure
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -237,10 +237,10 @@ print(compareSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 
 
 #dominance v richness
-compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=SimpD_scale, color=block_trt)) +
+compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=BP_scale, color=block_trt)) +
   geom_point() +
   xlab('Scaled Richness') + ylab('Scaled Dominance') +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='Kenya'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
   # geom_smooth(data=subset(commSite, block_trt=='China'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'|block_trt=='NAmerica'), method='lm', linetype='dashed', se=F) +
   theme(legend.position='none') +
   facet_wrap(~block_trt)
