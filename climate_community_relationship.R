@@ -57,10 +57,10 @@ richnessModelTable <- richnessModels%>%
 kable(richnessModelTable, 'html')%>%
   cat(., file = "richnessModelTable.html")
 
-#quadratic model - AIC=529.1192
+#quadratic model - AIC=523.9839
 summary(quadraticRichnessModel <- lmer(richness_scale~poly(ai,2) + (1|block_trt), commSite))
 AIC(quadraticRichnessModel)
-#linear model - AIC=549.3088
+#linear model - AIC=543.5762
 summary(linearRichnessModel <- lmer(richness_scale~ai + (1|block_trt), commSite))
 AIC(linearRichnessModel)
 
@@ -106,10 +106,10 @@ domModelTable <- domModels%>%
 kable(domModelTable, 'html')%>%
   cat(., file = "domModelTable.html")
 
-#quadratic model - AIC=540.8531
+#quadratic model - AIC=543.0985
 summary(quadraticDominanceModel <- lmer(BP_scale~poly(ai,2) + (1|block_trt), commSite))
 AIC(quadraticDominanceModel)
-#linear model - AIC=548.8107
+#linear model - AIC=543.1841
 summary(linearDominanceModel <- lmer(BP_scale~ai + (1|block_trt), commSite))
 AIC(linearDominanceModel)
 
@@ -135,55 +135,57 @@ kable(compareDomModelTable, 'html')%>%
 #model slopes vs aridity (comparing across blocks)
 #richness
 richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=block_trt)) +
-  xlab('Aridity') + ylab('Scaled Richness') +
+  xlab('') + ylab('Scaled Richness') +
   geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
   geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='Kenya'|block_trt=='SAmerica_ungrazed'), method='lm', linetype='dashed', se=F) +
   geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
   geom_point(size=5) +
-  theme(legend.position='none')
+  theme(legend.position='none') +
+  annotate("text", x=0.1, y=3, label = "(a)", size=6)
 
-summary(lm(slope~geo_mean_AI, data=richnessModels))
-
-richnessSlopeFig <- ggplot(data=richnessModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
-  geom_point(size=5) +
-  geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
-  geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
-  xlab('Aridity') + ylab('Slope of Richness v Aridity') +
-  geom_hline(yintercept=0) +
-  geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.4, y=6, label = "R2=0.530,\np=0.041", size=8)
-
-#richness figure
-pushViewport(viewport(layout=grid.layout(1,2)))
-print(richnessAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(richnessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-#export at 1800x800
+# summary(lm(slope~geo_mean_AI, data=richnessModels))
+# 
+# richnessSlopeFig <- ggplot(data=richnessModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
+#   geom_point(size=5) +
+#   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
+#   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
+#   xlab('Aridity') + ylab('Slope of Richness v Aridity') +
+#   geom_hline(yintercept=0) +
+#   geom_smooth(method='lm', size=2, color='black') +
+#   annotate("text", x=1.4, y=6, label = "R2=0.530,\np=0.041", size=8)
+# 
+# #richness figure
+# pushViewport(viewport(layout=grid.layout(1,2)))
+# print(richnessAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+# print(richnessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+# #export at 1800x800
 
 
 #Evar
 evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=block_trt)) +
   geom_point(size=5) +
-  xlab('Aridity') + ylab('Scaled Evar') +
+  xlab('') + ylab('Scaled Evar') +
   geom_smooth(data=subset(commSite, block_trt=='India'), method='lm', se=F) +
   geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', linetype='dashed', se=F) +
-  theme(legend.position='none')
+  theme(legend.position='none') +
+  annotate("text", x=0.1, y=4, label = "(b)", size=6)
 
-summary(lm(slope~geo_mean_AI, data=evarModels))
-
-evennessSlopeFig <- ggplot(data=evarModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
-  geom_point(size=5) +
-  geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
-  geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
-  xlab('Aridity') + ylab('Slope of Evar v Aridity') +
-  geom_hline(yintercept=0) +
-  # geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=4, label = "R2=0.012,\np=0.793", size=8)
-
-#Evar figure
-pushViewport(viewport(layout=grid.layout(1,2)))
-print(evennessAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(evennessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-#export at 1800x800
+# summary(lm(slope~geo_mean_AI, data=evarModels))
+# 
+# evennessSlopeFig <- ggplot(data=evarModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
+#   geom_point(size=5) +
+#   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
+#   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
+#   xlab('Aridity') + ylab('Slope of Evar v Aridity') +
+#   geom_hline(yintercept=0) +
+#   # geom_smooth(method='lm', size=2, color='black') +
+#   annotate("text", x=1.2, y=4, label = "R2=0.012,\np=0.793", size=8)
+# 
+# #Evar figure
+# pushViewport(viewport(layout=grid.layout(1,2)))
+# print(evennessAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+# print(evennessSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+# #export at 1800x800
 
 
 #dominance
@@ -192,24 +194,33 @@ dominanceAllFig <- ggplot(data=commSite, aes(x=ai, y=BP_scale, color=block_trt))
   geom_smooth(data=subset(commSite, block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
   geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China2'), method='lm', linetype='dashed', se=F) +
   geom_point(size=5) +
-  theme(legend.position='none')
+  theme(legend.position='none') +
+  annotate("text", x=0.1, y=4.5, label = "(c)", size=6)
 
-summary(lm(slope~geo_mean_AI, data=domModels))
+# summary(lm(slope~geo_mean_AI, data=domModels))
+# 
+# dominanceSlopeFig <- ggplot(data=domModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
+#   geom_point(size=5) +
+#   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
+#   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
+#   xlab('Aridity') + ylab('Slope of Dominance v Aridity') +
+#   geom_hline(yintercept=0) +
+#   # geom_smooth(method='lm', size=2, color='black') +
+#   annotate("text", x=1.2, y=-4, label = "R2=0.403,\np=0.091", size=8)
+# 
+# #dominance figure
+# pushViewport(viewport(layout=grid.layout(1,2)))
+# print(dominanceAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+# print(dominanceSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+# #export at 1800x800
 
-dominanceSlopeFig <- ggplot(data=domModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
-  geom_point(size=5) +
-  geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
-  geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
-  xlab('Aridity') + ylab('Slope of Dominance v Aridity') +
-  geom_hline(yintercept=0) +
-  # geom_smooth(method='lm', size=2, color='black') +
-  annotate("text", x=1.2, y=-4, label = "R2=0.403,\np=0.091", size=8)
+#community metrics vs aridity figure
+pushViewport(viewport(layout=grid.layout(3,1)))
+print(richnessAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(evennessAllFig, vp=viewport(layout.pos.row=2, layout.pos.col=1))
+print(dominanceAllFig, vp=viewport(layout.pos.row=3, layout.pos.col=1))
+#export at 600x1800
 
-#dominance figure
-pushViewport(viewport(layout=grid.layout(1,2)))
-print(dominanceAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(dominanceSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-#export at 1800x800
 
 
 
