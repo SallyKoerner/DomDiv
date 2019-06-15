@@ -614,20 +614,47 @@ AUS_Morgan2<-AUS_Morgan%>%
   gather(unique, cover, 3:ncol(AUS_Morgan)) %>%  
   separate(unique, into=c("site", "plot"), sep="_")
   
+AUS_Morgan2$cover[which(AUS_Morgan2$cover == 5)] <- 88
+AUS_Morgan2$cover[which(AUS_Morgan2$cover == 4)] <- 62.5
+AUS_Morgan2$cover[which(AUS_Morgan2$cover == 3)] <- 37.5
+AUS_Morgan2$cover[which(AUS_Morgan2$cover == 2)] <- 15
+AUS_Morgan2$cover[which(AUS_Morgan2$cover == 1)] <- 3
+
+
 
 #BIND all together
 AllData<-bind_rows(AUS_TREND_2, Brazil, Canada2, China_All, India2, Kenya2, 
                    NorthAmerica, SAmerica2, SouthAfrica, Tanzania2, Tibet2, China2,
-                   China3_All, Argentina_All, AUS_Morgan2)
-write.csv(AllData, file="~/Dropbox/DomDiv_Workshop/Dominance_Diversity/AllData_14June2019.csv")
+                   China3_All, Argentina_All, AUS_Morgan2)%>%
+  filter(block!="")
+#write.csv(AllData, file="~/Dropbox/DomDiv_Workshop/Dominance_Diversity/AllData_14June2019.csv")
+
+unique(AllData$block)
 
 
-
-
-
+###Only need to run once, even if rest of code changes
 #Brazil metadat
 Brazilmeta<-read.csv("./Brazil/Brazil_metadata.csv")
 # convert from decimal minutes to decimal degrees
 Brazilmeta$lat = conv_unit(Brazilmeta$lat, 'deg_min_sec', 'dec_deg')
 Brazilmeta$long = measurements::conv_unit(Brazilmeta$long, 
                                           from = 'deg_dec_min', to = 'dec_deg')
+
+#AUS_Morgan metadat
+setwd("~/Dropbox/DomDiv_Workshop/NewData_ToClean_21Dec2018")
+AUS_Morgan_meta<-read.csv("./Morgan_latlong.csv")
+# convert from decimal minutes to decimal degrees
+AUS_Morgan_meta$lat3 = conv_unit(AUS_Morgan_meta$lat2, 'deg_min_sec', 'dec_deg')
+AUS_Morgan_meta$long3 = measurements::conv_unit(AUS_Morgan_meta$long2, 
+                                          from = 'deg_min_sec', to = 'dec_deg')
+AUS_Morgan_meta2<-AUS_Morgan_meta%>%
+  mutate(lat3=as.numeric(lat3), long3=as.numeric(long3)) %>% 
+  group_by(Site)%>%
+  summarise(lat=mean(lat3), long=mean(long3))
+
+
+
+
+###THINGS TO DO after 6/14
+#1. Add in China2 and China3 to gps excel file
+
