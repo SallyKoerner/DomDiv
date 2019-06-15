@@ -356,6 +356,12 @@ for(i in na.files){
 China2<-China2%>%
   select(-X)
 head(China2) 
+# just to see how many plots per block
+#plotnum<-China2 %>% 
+#group_by(site, plot) %>% 
+#summarise(total=sum(cover)) %>% 
+#group_by(site) %>% 
+#summarise(num=n())
 
 ######NEW DATA post Dec 2018 working group
 ###Bring in China3
@@ -452,6 +458,13 @@ China3_All<-bind_rows(China3A2, China3B2, China3C2, China3D2, China3E2, China3F2
          species=as.character(species), cover=as.numeric(cover))
 head(China3_All)
 warnings()
+
+# just to see how many plots per block
+plotnum<-China3_All %>% 
+group_by(site, plot) %>% 
+summarise(total=sum(cover)) %>% 
+group_by(site) %>% 
+summarise(num=n())
 
 ###Bring in Argentina data
 setwd("~/Dropbox/DomDiv_Workshop/NewData_ToClean_21Dec2018/Argentina")
@@ -620,6 +633,12 @@ AUS_Morgan2$cover[which(AUS_Morgan2$cover == 3)] <- 37.5
 AUS_Morgan2$cover[which(AUS_Morgan2$cover == 2)] <- 15
 AUS_Morgan2$cover[which(AUS_Morgan2$cover == 1)] <- 3
 
+# just to see how many plots per block
+#plotnum<-AUS_Morgan2 %>% 
+ # group_by(site, plot) %>% 
+  #summarise(total=sum(cover)) %>% 
+#  group_by(site) %>% 
+ # summarise(num=n())
 
 
 #BIND all together
