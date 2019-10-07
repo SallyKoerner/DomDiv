@@ -1,11 +1,12 @@
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\\Dominance_Diversity')
+setwd('C:\\Users\\megha\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
 
 library(grid)
 library(knitr)
 library(kableExtra)
 library(lme4)
 library(tidyverse)
-
+library(lmerTest)
 
 ###ggplot theme set
 theme_set(theme_bw())
@@ -19,11 +20,12 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
 
 
 #import community metrics - site level (single RAC for a site)
-commSite <- read.csv('community_metrics_single_climate_Dec2018.csv')%>%
+commSite <- read.csv('community_metrics_single_climate_Oct2019.csv')%>%
   group_by(block_trt)%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
-  filter(block_trt!='China') #only 4 datapoints
+  rename(ai=dat.AI)%>%
+  filter(block_trt!="Kenya")#want to add back, has no climate data :()
 
 
 
@@ -78,6 +80,7 @@ evarModelTable <- evarModels%>%
 kable(evarModelTable, 'html')%>%
   cat(., file = "evarModelTable.html")
 
+summary(linearEvenessModel <- lmer(Evar_scale~ai + (1|block_trt), commSite))
 
 #compare richness and evenness
 compareEvenModels <- commSite%>%
@@ -91,6 +94,8 @@ compareEvenModelTable <- compareEvenModels%>%
   rename(Block=block_trt)
 kable(compareEvenModelTable, 'html')%>%
   cat(., file = "compareEvenModelTable")
+
+summary(linearDominanceModel <- lmer(BP_scale~ai + (1|block_trt), commSite))
 
 
 #dominance models
@@ -137,7 +142,7 @@ kable(compareDomModelTable, 'html')%>%
 richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=block_trt)) +
   xlab('') + ylab('Scaled Richness') +
   geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='Kenya'|block_trt=='SAmerica_ungrazed'), method='lm', linetype='dashed', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China3'|block_trt=='Kenya'|block_trt=='Argentina'|block_trt=="AUS_Morgan"), method='lm', linetype='dashed', se=F) +
   geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
   geom_point(size=5) +
   theme(legend.position='none') +
@@ -166,7 +171,7 @@ evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=block_trt)
   geom_point(size=5) +
   xlab('') + ylab('Scaled Evar') +
   geom_smooth(data=subset(commSite, block_trt=='India'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China2'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', linetype='dashed', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='China3'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='Argentina'|block_trt=='Tibet_ungrazed'|block_trt=="AUS_Morgan"), method='lm', linetype='dashed', se=F) +
   theme(legend.position='none') +
   annotate("text", x=0.1, y=4, label = "(b)", size=6)
 
@@ -191,8 +196,8 @@ evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=block_trt)
 #dominance
 dominanceAllFig <- ggplot(data=commSite, aes(x=ai, y=BP_scale, color=block_trt)) +
   xlab('Aridity') + ylab('Scaled Dominance') +
-  geom_smooth(data=subset(commSite, block_trt=='SAmerica_ungrazed'|block_trt=='Tibet_ungrazed'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China2'), method='lm', linetype='dashed', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Tibet_ungrazed'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, block_trt=='Brazil'|block_trt=='India'|block_trt=='Kenya'|block_trt=='NAmerica'|block_trt=='SAfrica'|block_trt=='China3'|block_trt=="Argentina"|block_trt=="AUS_Morgan"), method='lm', linetype='dashed', se=F) +
   geom_point(size=5) +
   theme(legend.position='none') +
   annotate("text", x=0.1, y=4.5, label = "(c)", size=6)
@@ -228,11 +233,11 @@ print(dominanceAllFig, vp=viewport(layout.pos.row=3, layout.pos.col=1))
 compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color=block_trt)) +
   geom_point() +
   xlab('Scaled Richness') + ylab('Scaled Evar') +
-  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='Brazil'|block_trt=='NAmerica'), method='lm') +
+  geom_smooth(data=subset(commSite, block_trt=='India'|block_trt=='Brazil'|block_trt=='NAmerica'|block_trt=="China3"), method='lm') +
   theme(legend.position='none') +
   facet_wrap(~block_trt)
 
-summary(lm(slope~geo_mean_AI, data=compareModels))
+summary(lm(slope~geo_mean_AI, data=compareEvenModels))
 
 compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
   geom_point(size=5) +
