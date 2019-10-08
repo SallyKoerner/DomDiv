@@ -153,11 +153,11 @@ kable(compareDomModelTable, 'html')%>%
 
 #model slopes vs aridity (comparing across blocks)
 #richness
-richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=country)) +
+richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness, color=country)) +
   xlab('') + ylab('Scaled Richness') +
   scale_color_brewer(palette="Set1")+
   geom_smooth(data=subset(commSite, country=='India'|country=='USA'|country=='South Africa'|country=='Tibet'), method='lm', se=F) +
-    geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='Argentina'|block_trt=="Australia"), method='lm', linetype='dashed', se=F) +
+    geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='Argentina'|country=="Australia"), method='lm', linetype='dashed', se=F) +
   geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2)+
   geom_point(size=3) +
   theme(legend.position='none') +
