@@ -22,7 +22,8 @@ dat<-read.csv("AllData_14June2019.csv")%>%
 key <- read.csv('ClimateSoilsData/SiteNameKey_UpdateJune2019.csv')
 
 #import climate data
-climate <- read.csv('dat_clim_modified site names.csv')%>%
+climate <- read.csv('dat_clim_NEW_names modified.csv')%>%
+  rename(site=X)%>%
   left_join(key)%>%
   filter(!is.na(bio1))
 
@@ -61,20 +62,20 @@ brazil <- plots%>%
   rename(Site_num=rep)%>%
   select(-region, -CCA)
 
-#### need to do Argentina ---- USE ALL PLOTS, do not need to subset this site, there are 100 plots per site though, so if this looks weird, we might need to rethink
+#### need to do Argentina ---- USE ALL PLOTS, do not need to subset this site, there are 100 plots per site though, so if this looks weird, we might need to rethink - looks to be okay.
 
 plotssubset <- plots%>%
   filter(block_trt!='AUS_Morgan'&block_trt!='Brazil')%>%
   rbind(AUS_morgan)%>%
   rbind(brazil)
 
-#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse_14Dec2018.csv", row.names = F)
+#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse_Oct2019.csv", row.names = F)
 
 ##merge these plots in with the community data
 data_subset<-dat%>%
   right_join(plotssubset)
 
-#write.csv(data_subset, "subet_raw_data.csv", row.names = F)
+#write.csv(data_subset, "subet_raw_data_Oct2019.csv", row.names = F)
 
 #calc relative cover
 totcov<-data_subset%>%
@@ -141,7 +142,7 @@ panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
   text(.8, .8, "*", cex=4, col="red") 
 }
 
-pairs(domeven[,c(3,4,28)], lower.panel=panel.smooth, upper.panel=panel.cor)
+pairs(domeven[,c(3,4,29)], labels=c("Richness", "Evenness", "Dominance"),lower.panel=panel.smooth, upper.panel=panel.cor)
 
 
 #see how number of plots change these relationships
@@ -152,7 +153,7 @@ pnum<-data_subset%>%
   group_by(block_trt, block, site)%>%
   summarize(n=length(plot))
 
-numplots<-data.frame(block_trt=c("Argentina", "AUS_Morgan", "Brazil","China", "India","Kenya","NAmerica","SAfrica", "Tibet_ungrazed"), numplots=c(100,5,10,6,9,1,20,20,5))
+numplots<-data.frame(block_trt=c("Argentina", "AUS_Morgan", "Brazil","China3", "India","Kenya","NAmerica","SAfrica", "Tibet_ungrazed"), numplots=c(100,5,10,6,9,1,20,20,5))
 
 #i have for india only 1 plot / site, not 9 as was orginally stated. not sure why there is a difference
 
@@ -166,7 +167,7 @@ plotnum<-domeven%>%
 
 summary(lm(richness~numplots, data=plotnum))
 r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
 #  geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -176,7 +177,7 @@ r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
 
 summary(lm(Evar~numplots, data=plotnum))
 e<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
   geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -186,7 +187,7 @@ e<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
 
 summary(lm(BP_D~numplots, data=plotnum))
 d<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
 #  geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -195,7 +196,7 @@ d<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
 
 summary(lm(srich~numplots, data=plotnum))
 sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Richness")+
@@ -204,7 +205,7 @@ sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
 
 summary(lm(sevar~numplots, data=plotnum))
 se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Evenness")+
@@ -213,13 +214,13 @@ se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
 
 summary(lm(sdom~numplots, data=plotnum))
 sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
-  geom_point(aes(color=block_trt))+
+  geom_point(aes(color=country), size=2)+
   scale_color_brewer(palette="Set1")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Dominance")+
   xlab("Number of Plots")
 
-grid.arrange(r,e,d, sr,se,sd, ncol=3)
+
 legend=gtable_filter(ggplot_gtable(ggplot_build(sd)), "guide-box") 
 grid.draw(legend)
 
