@@ -7,9 +7,10 @@ library(kableExtra)
 library(lme4)
 library(tidyverse)
 library(lmerTest)
+library(MuMIn)
 
 ###ggplot theme set
-theme_set(theme_bw())
+theme_set(theme_bw(12))
 theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=element_text(size=16),
              axis.title.y=element_text(size=20, angle=90, vjust=0.5), axis.text.y=element_text(size=16),
              plot.title = element_text(size=24, vjust=2),
@@ -60,6 +61,7 @@ kable(richnessModelTable, 'html')%>%
 #quadratic model - AIC=484.82
 summary(quadraticRichnessModel <- lmer(richness_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticRichnessModel)
+r.squaredGLMM(quadraticRichnessModel)
 #linear model - AIC=519.97
 summary(linearRichnessModel <- lmer(richness_scale~ai + (1|country), commSite))
 AIC(linearRichnessModel)
@@ -81,9 +83,11 @@ kable(evarModelTable, 'html')%>%
 #quadratic model - AIC=512.41
 summary(quadraticEvenessModel <- lmer(Evar_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticEvenessModel)
+r.squaredGLMM(quadraticEvenessModel)
 #quadratic model - AIC=517.41
 summary(linearEvenessModel <- lmer(Evar_scale~ai + (1|country), commSite))
 AIC(linearEvenessModel)
+r.squaredGLMM(linearEvenessModel)
 
 #compare richness and evenness
 compareEvenModels <- commSite%>%
@@ -97,6 +101,15 @@ compareEvenModelTable <- compareEvenModels%>%
   rename(Block=country)
 kable(compareEvenModelTable, 'html')%>%
   cat(., file = "compareEvenModelTable")
+
+#overall relationship
+#quadratic model - AIC=504
+summary(quadraticRichEvenModel <- lmer(Evar_scale~poly(richness_scale,2) + (1|country), commSite))
+AIC(quadraticRichEvenModel)
+r.squaredGLMM(quadraticRichEvenModel)
+#linear model - AIC=510.75
+summary(linearRichEvenModel <- lmer(Evar_scale~richness_scale + (1|country), commSite))
+AIC(linearRichEvenModel)
 
 
 #dominance models
@@ -144,12 +157,14 @@ richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=countr
   xlab('') + ylab('Scaled Richness') +
   scale_color_brewer(palette="Set1")+
   geom_smooth(data=subset(commSite, country=='India'|country=='USA'|country=='South Africa'|country=='Tibet'), method='lm', se=F) +
-  
-  geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='Argentina'|block_trt=="Australia"), method='lm', linetype='dashed', se=F) +
-  geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2) +
-  geom_point(size=5) +
+    geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='Argentina'|block_trt=="Australia"), method='lm', linetype='dashed', se=F) +
+  geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2)+
+  geom_point(size=3) +
   theme(legend.position='none') +
-  annotate("text", x=0.1, y=3, label = "(a)", size=6)
+  annotate("text", x=0.1, y=3, label = "(a)", size=4)+
+  annotate("text", x=1.3, y=3, label = expression(paste("",R^2 ,"= 0.16")), size=4)+
+  labs(color="Country")+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
 # summary(lm(slope~geo_mean_AI, data=richnessModels))
 # 
@@ -171,13 +186,16 @@ richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=countr
 
 #Evar
 evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=country)) +
-  geom_point(size=5) +
+  geom_point(size=3) +
   scale_color_brewer(palette="Set1")+
-  xlab('') + ylab('Scaled Evar') +
+  xlab('Ariditiy Index') + ylab('Scaled Evenness') +
   geom_smooth(data=subset(commSite, country=='India'), method='lm', se=F) +
   geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='USA'|country=='South Africa'|country=='Argentina'|country=='Tibet'|country=="Australia"), method='lm', linetype='dashed', se=F) +
   #theme(legend.position='none') +
-  annotate("text", x=0.1, y=4, label = "(b)", size=6)
+  labs(color="Country")+
+  annotate("text", x=0.1, y=4, label = "(b)", size=4)+
+  annotate("text", x=1.3, y=4, label = expression(paste("",R^2 ,"= 0.02")), size=4)+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
 # summary(lm(slope~geo_mean_AI, data=evarModels))
 # 
@@ -232,25 +250,44 @@ dominanceAllFig <- ggplot(data=commSite, aes(x=ai, y=BP_scale, color=country)) +
 # print(dominanceAllFig, vp=viewport(layout.pos.row=3, layout.pos.col=1))
 # #export at 600x1800
 
-legend=gtable_filter(ggplot_gtable(ggplot_build(dominanceAllFig)), "guide-box") 
+legend=gtable_filter(ggplot_gtable(ggplot_build(evennessAllFig)), "guide-box") 
 grid.draw(legend)
 
 fig1<-
   grid.arrange(arrangeGrob(richnessAllFig+theme(legend.position="none"),
                            evennessAllFig+theme(legend.position="none"),
-                           dominanceAllFig+theme(legend.position="none"),
+                           #dominanceAllFig+theme(legend.position="none"),
                            ncol=1), legend, 
                widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
 
 
 #Evar v richness
+
+#doing this as a facet wrap
 compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color=country)) +
   geom_point() +
   scale_color_brewer(palette="Set1")+
-  xlab('Scaled Richness') + ylab('Scaled Evar') +
+  xlab('Scaled Richness') + ylab('Scaled Evenness') +
   geom_smooth(data=subset(commSite, country=='India'|country=='Brazil'|country=='USA'|country=="China"), method='lm', se=F) +
   theme(legend.position='none') +
-  facet_wrap(~country)
+  facet_wrap(~country)+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+
+###overall richness evennss relationship doing for all points
+
+evennessRichFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color=country)) +
+  geom_point(size=3) +
+  scale_color_brewer(palette="Set1")+
+  xlab('Scaled Richness') + ylab('Scaled Evenness') +
+  geom_smooth(data=subset(commSite, country=='India'|country=='Brazil'|country=='China'|country=='USA'), method='lm', se=F) +
+  geom_smooth(data=subset(commSite, country=='Kenya'|country=='South Africa'|country=='Argentina'|country=='Tibet'|country=="Australia"), method='lm', linetype='dashed', se=F) +
+  #theme(legend.position='none') +
+  labs(color="Country")+
+  annotate("text", x=-2, y=4, label = "(a)", size=4)+
+  annotate("text", x=2, y=4, label = expression(paste("",R^2 ,"= 0.05")), size=4)+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
+  geom_smooth(method = "lm", color='black', size=2)
+
 
 summary(lm(slope~geo_mean_AI, data=compareEvenModels))
 
@@ -296,11 +333,6 @@ pushViewport(viewport(layout=grid.layout(1,2)))
 print(compareAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
 print(compareSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 #export at 1800x800
-
-
-
-
-
 
 
 
