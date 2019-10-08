@@ -218,7 +218,8 @@ sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
   scale_color_brewer(palette="Set1")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Dominance")+
-  xlab("Number of Plots")
+  xlab("Number of Plots")+
+  labs(color = "Country")
 
 
 legend=gtable_filter(ggplot_gtable(ggplot_build(sd)), "guide-box") 
@@ -233,6 +234,13 @@ fig1<-
                            sd+theme(legend.position="none"),
                            ncol=2), legend, 
                widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
+
+grid.arrange(arrangeGrob(r+theme(legend.position="none"),
+                         sr+theme(legend.position="none"),
+                         e+theme(legend.position="none"),
+                         se+theme(legend.position="none"),
+                         ncol=2), legend, 
+             widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
 
 pairs(rich_evar_single[,3:4])
 
