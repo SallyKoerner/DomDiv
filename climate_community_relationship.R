@@ -1,5 +1,6 @@
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\megha\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
+setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
 library(grid)
 library(knitr)
@@ -18,13 +19,13 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
              axis.title.y=element_text(size=20, angle=90, vjust=0.5), axis.text.y=element_text(size=16),
              plot.title = element_text(size=24, vjust=2),
              panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-             legend.title=element_blank(), legend.text=element_text(size=20))
+             legend.title=element_text(size=20), legend.text=element_text(size=20))
 
 
 
 
 #import community metrics - site level (single RAC for a site)
-commSite <- read.csv('community_metrics_single_climate_Oct2019.csv')%>%
+commSite <- read.csv('community_metrics_single_climate_Oct2019b.csv')%>%
   group_by(block_trt)%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
@@ -61,7 +62,7 @@ richnessModelTable <- richnessModels%>%
 kable(richnessModelTable, 'html')%>%
   cat(., file = "richnessModelTable.html")
 
-#quadratic model - AIC=484.82
+#quadratic model - AIC=485.1042
 summary(quadraticRichnessModel <- lmer(richness_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticRichnessModel)
 r.squaredGLMM(quadraticRichnessModel)
@@ -83,34 +84,34 @@ evarModelTable <- evarModels%>%
 kable(evarModelTable, 'html')%>%
   cat(., file = "evarModelTable.html")
 
-#quadratic model - AIC=512.41
+#quadratic model - AIC=512.4835
 summary(quadraticEvenessModel <- lmer(Evar_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticEvenessModel)
 r.squaredGLMM(quadraticEvenessModel)
-#quadratic model - AIC=517.41
+#quadratic model - AIC=517.3496
 summary(linearEvenessModel <- lmer(Evar_scale~ai + (1|country), commSite))
 AIC(linearEvenessModel)
 r.squaredGLMM(linearEvenessModel)
 
 #compare richness and evenness
-compareEvenModels <- commSite%>%
+compareRichEvenModels <- commSite%>%
   group_by(country)%>%
   do(model = lm(Evar_scale ~ richness_scale, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
-compareEvenModelTable <- compareEvenModels%>%
+compareRichEvenModelTable <- compareRichEvenModels%>%
   select(country, f, df_num, df_den, pval, R2, slope)%>%
   rename(Block=country)
 kable(compareEvenModelTable, 'html')%>%
   cat(., file = "compareEvenModelTable")
 
 #overall relationship
-#quadratic model - AIC=504
+#quadratic model - AIC=507.1007
 summary(quadraticRichEvenModel <- lmer(Evar_scale~poly(richness_scale,2) + (1|country), commSite))
 AIC(quadraticRichEvenModel)
 r.squaredGLMM(quadraticRichEvenModel)
-#linear model - AIC=510.75
+#linear model - AIC=513.7464
 summary(linearRichEvenModel <- lmer(Evar_scale~richness_scale + (1|country), commSite))
 AIC(linearRichEvenModel)
 
@@ -195,9 +196,9 @@ evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=country)) 
   geom_smooth(data=subset(commSite, country=='India'), method='lm', se=F) +
   geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='USA'|country=='South Africa'|country=='Argentina'|country=='Tibet'|country=="Australia"), method='lm', linetype='dashed', se=F) +
   #theme(legend.position='none') +
-  labs(color="Country")+
+  labs(color="Gradient")+
   annotate("text", x=0.1, y=4, label = "(b)", size=4)+
-  annotate("text", x=1.3, y=4, label = expression(paste("",R^2 ,"= 0.02")), size=4)+
+  annotate("text", x=1.3, y=4, label = expression(paste("",R^2 ,"= 0.01")), size=4)+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
 # summary(lm(slope~geo_mean_AI, data=evarModels))
@@ -310,8 +311,8 @@ compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, co
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
   xlab('Aridity') + ylab('Slope of Evenness vs Richness') +
   geom_hline(yintercept=0) +
-  annotate("text",x=Inf, y=-Inf, hjust=1.1, vjust=-1, label = expression(paste("",R^2 ,"= 0.06, p=0.255")), size=4)+
-  labs(color="Country")+
+  annotate("text",x=Inf, y=-Inf, hjust=1.1, vjust=-1, label = expression(paste("",R^2 ,"= 0.01, p=0.331")), size=4)+
+  labs(color="Gradient")+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 # 
 # #comparison figure
