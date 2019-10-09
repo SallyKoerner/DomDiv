@@ -8,6 +8,9 @@ library(lme4)
 library(tidyverse)
 library(lmerTest)
 library(MuMIn)
+library(gridExtra)
+library(gtable)
+library(grid)
 
 ###ggplot theme set
 theme_set(theme_bw(12))
@@ -153,7 +156,7 @@ kable(compareDomModelTable, 'html')%>%
 
 #model slopes vs aridity (comparing across blocks)
 #richness
-richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness, color=country)) +
+richnessAllFig <- ggplot(data=commSite, aes(x=ai, y=richness_scale, color=country)) +
   xlab('') + ylab('Scaled Richness') +
   scale_color_brewer(palette="Set1")+
   geom_smooth(data=subset(commSite, country=='India'|country=='USA'|country=='South Africa'|country=='Tibet'), method='lm', se=F) +
@@ -264,14 +267,27 @@ fig1<-
 #Evar v richness
 
 #doing this as a facet wrap
-compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, color=country)) +
+avearid<-commSite%>%
+  group_by(country)%>%
+  summarize(mean=mean(ai))
+
+commSite2<-commSite%>%
+  mutate(countrygroup=factor(country, levels = c("Argentina", "China","Tibet","Kenya", "Australia", "South Africa", "USA", "India", "Brazil")))
+compareEvenModelTable2<-compareEvenModelTable%>%
+  mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet","Kenya", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+  mutate(r2=round(R2, digits=3))
+
+compareAllFig <- ggplot(data=commSite2, aes(x=richness_scale, y=Evar_scale, color=countrygroup)) +
   geom_point() +
-  scale_color_brewer(palette="Set1")+
+  #scale_color_brewer(palette="Set1")+
   xlab('Scaled Richness') + ylab('Scaled Evenness') +
-  geom_smooth(data=subset(commSite, country=='India'|country=='Brazil'|country=='USA'|country=="China"), method='lm', se=F) +
+  geom_smooth(data=subset(commSite2, country=='India'|country=='Brazil'|country=='USA'|country=="China"), method='lm', se=F) +
   theme(legend.position='none') +
-  facet_wrap(~country)+
-  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+  facet_wrap(~countrygroup)+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
+  geom_text(data=compareEvenModelTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
+  theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
+  scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF", "#FFFF33", "#377EB8", "#A65628", "#999999", "#FF7F00", "#4DAF4A"))
 
 ###overall richness evennss relationship doing for all points
 
@@ -279,34 +295,40 @@ evennessRichFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, col
   geom_point(size=3) +
   scale_color_brewer(palette="Set1")+
   xlab('Scaled Richness') + ylab('Scaled Evenness') +
-  geom_smooth(data=subset(commSite, country=='India'|country=='Brazil'|country=='China'|country=='USA'), method='lm', se=F) +
-  geom_smooth(data=subset(commSite, country=='Kenya'|country=='South Africa'|country=='Argentina'|country=='Tibet'|country=="Australia"), method='lm', linetype='dashed', se=F) +
-  #theme(legend.position='none') +
-  labs(color="Country")+
-  annotate("text", x=-2, y=4, label = "(a)", size=4)+
-  annotate("text", x=2, y=4, label = expression(paste("",R^2 ,"= 0.05")), size=4)+
-  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
-  geom_smooth(method = "lm", color='black', size=2)
+  #annotate("text", x=-2, y=4, label = "(a)", size=4)+
+  annotate("text", x=Inf, y=Inf, hjust=1.5, vjust=1.5, label = expression(paste("",R^2 ,"= 0.05")), size=4)+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(), legend.position =         "none")+
+  geom_smooth(method = "lm",  formula = y ~ x + I(x^2), color='black', size=2)
 
 
 summary(lm(slope~geo_mean_AI, data=compareEvenModels))
 
 compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, color=country)) +
-  geom_point(size=5) +
+  geom_point(size=3) +
   scale_color_brewer(palette="Set1")+
   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
-  xlab('Aridity') + ylab('Slope of Evar v Richness') +
+  xlab('Aridity') + ylab('Slope of Evenness vs Richness') +
   geom_hline(yintercept=0) +
-  annotate("text", x=1.1, y=-0.8, label = expression(paste("",R^2 ,"= 0.06, p=0.255")), size=5)
+  annotate("text",x=Inf, y=-Inf, hjust=1.1, vjust=-1, label = expression(paste("",R^2 ,"= 0.06, p=0.255")), size=4)+
+  labs(color="Country")+
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+# 
+# #comparison figure
+# pushViewport(viewport(layout=grid.layout(1,2)))
+# print(compareAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+# print(compareSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+# #export at 1800x800
 
-#comparison figure
-pushViewport(viewport(layout=grid.layout(1,2)))
-print(compareAllFig, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(compareSlopeFig, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-#export at 1800x800
+legend=gtable_filter(ggplot_gtable(ggplot_build(compareSlopeFig)), "guide-box") 
+grid.draw(legend)
 
-
+  grid.arrange(arrangeGrob(
+    evennessRichFig+theme(legend.position="none"),
+    compareAllFig+theme(legend.position="none"),
+                           compareSlopeFig+theme(legend.position="none"),
+                          ncol=1), legend,
+               widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
 
 #dominance v richness
 compareAllFig <- ggplot(data=commSite, aes(x=richness_scale, y=BP_scale, color=country)) +
