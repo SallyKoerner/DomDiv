@@ -144,6 +144,13 @@ panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
 
 pairs(domeven[,c(3,4,29)], labels=c("Richness", "Evenness", "Dominance"),lower.panel=panel.smooth, upper.panel=panel.cor)
 
+cor.test(domeven$Evar, domeven$BP_D)
+
+ggplot(data=domeven, aes(x=Evar, y=BP_D))+
+  geom_point(size=3)+
+  xlab("Evenness")+
+  ylab("Dominance")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 #see how number of plots change these relationships
 
