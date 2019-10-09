@@ -619,8 +619,7 @@ setwd("~/Dropbox/DomDiv_Workshop/NewData_ToClean_21Dec2018")
 AUS_Morgan<-read.csv("./AUS_Morgan.csv")%>%
   mutate(block="AUS_Morgan")%>%
   replace(is.na(.), 0)%>%
-  select(block,everything()) %>% 
-  mutate(korrack_M05090=as.numeric(korrack_M05090))
+  select(block,everything()) 
 
 AUS_Morgan2<-AUS_Morgan%>%
   ungroup()%>%
@@ -633,12 +632,12 @@ AUS_Morgan2$cover[which(AUS_Morgan2$cover == 3)] <- 37.5
 AUS_Morgan2$cover[which(AUS_Morgan2$cover == 2)] <- 15
 AUS_Morgan2$cover[which(AUS_Morgan2$cover == 1)] <- 3
 
-# just to see how many plots per block
-#plotnum<-AUS_Morgan2 %>% 
- # group_by(site, plot) %>% 
-  #summarise(total=sum(cover)) %>% 
-#  group_by(site) %>% 
- # summarise(num=n())
+#just to see how many plots per block
+plotnum<-AUS_Morgan2 %>% 
+  group_by(site, plot) %>% 
+  summarise(total=sum(cover)) %>% 
+  group_by(site) %>% 
+  summarise(num=n())
 
 
 #BIND all together
@@ -646,7 +645,7 @@ AllData<-bind_rows(AUS_TREND_2, Brazil, Canada2, China_All, India2, Kenya2,
                    NorthAmerica, SAmerica2, SouthAfrica, Tanzania2, Tibet2, China2,
                    China3_All, Argentina_All, AUS_Morgan2)%>%
   filter(block!="")
-#write.csv(AllData, file="~/Dropbox/DomDiv_Workshop/Dominance_Diversity/AllData_14June2019.csv")
+write.csv(AllData, file="~/Dropbox/DomDiv_Workshop/Dominance_Diversity/AllData_9Oct2019.csv")
 
 unique(AllData$block)
 
