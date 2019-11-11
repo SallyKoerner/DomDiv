@@ -32,7 +32,7 @@ plots <- dat%>%
   select(block, site, plot, trt)%>%
   unique()%>%
   left_join(climate)%>%
-  filter(block!="Canada"&block!='Tanzania'&block!='AUS'&block!='SAmerica'&block!="China"&block!="China2")%>%
+  filter(block!="Canada"&block!='Tanzania'&block!='AUS'&block!='SAmerica'&block!="China"&block!="China2"&block!="Kenya")%>%
   #create block_trt column to account for grazing differences for a few sites
   mutate(block_trt=as.factor(ifelse(block=='Tibet'&trt=='G', 'Tibet_grazed', ifelse(block=='Tibet'&trt=='U', 'Tibet_ungrazed', as.character(block)))))%>%
   filter(block_trt!='Tibet_grazed'&site!="Tibet_Site1_Amdo_Bang'ai"&site!="Tibet_Site6_Shuanghu_Beicuo") #drops datasets we no longer want to including two tibetan sites that are missing 2 of the 5 plots
