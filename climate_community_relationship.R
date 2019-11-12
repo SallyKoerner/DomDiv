@@ -1,4 +1,3 @@
-setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\megha\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
@@ -340,9 +339,10 @@ RichEvenFacet <- ggplot(data=commSite2, aes(x=richness_scale, y=Evar_scale, colo
   
 RichAridTable2<-richnessModelTable%>%
     mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
-    mutate(r2=round(R2, digits=3))
+    mutate(r2=round(R2, digits=3))%>%
+  filter(countrygroup!='NA')
 
-RichAridFacet <- ggplot(data=commSite2, aes(x=ai, y=richness_scale, color=countrygroup)) +
+RichAridFacet <- ggplot(data=subset(commSite2, country!='Kenya'), aes(x=ai, y=richness_scale, color=countrygroup)) +
     geom_point() +
     xlab('Aridity') + ylab('Scaled Richness') +
     geom_smooth(data=subset(commSite2, country=='India'|country=='South Africa'|country=='USA'|country=="Tibet"), method='lm', se=F) +
@@ -355,9 +355,10 @@ RichAridFacet <- ggplot(data=commSite2, aes(x=ai, y=richness_scale, color=countr
 
 EvenAridTable2<-evarModelTable%>%
   mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
-  mutate(r2=round(R2, digits=3))
+  mutate(r2=round(R2, digits=3))%>%
+  filter(countrygroup!='NA')
 
-EvenAridFacet <- ggplot(data=commSite2, aes(x=ai, y=richness_scale, color=countrygroup)) +
+EvenAridFacet <- ggplot(data=subset(commSite2, country!='Kenya'), aes(x=ai, y=Evar_scale, color=countrygroup)) +
   geom_point() +
   xlab('Aridity') + ylab('Scaled Evenness') +
   geom_smooth(data=subset(commSite2, country=='India'), method='lm', se=F) +
