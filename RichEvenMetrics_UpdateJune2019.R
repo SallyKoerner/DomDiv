@@ -11,10 +11,11 @@ library(grid)
 
 setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
 setwd("C:/Users/megha/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
+setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
 theme_set(theme_bw(12))
 
-dat<-read.csv("AllData_14June2019.csv")%>%
+dat<-read.csv("AllData_9Oct2019.csv")%>%
   select(-X)%>%
   filter(plot!="")
 
@@ -62,14 +63,14 @@ brazil <- plots%>%
   rename(Site_num=rep)%>%
   select(-region, -CCA)
 
-#### need to do Argentina ---- USE ALL PLOTS, do not need to subset this site, there are 100 plots per site though, so if this looks weird, we might need to rethink - looks to be okay.
+#### don't need to do Argentina ---- USE ALL PLOTS, do not need to subset this site, there are 100 plots per site though, so if this looks weird, we might need to rethink - looks to be okay.
 
 plotssubset <- plots%>%
   filter(block_trt!='AUS_Morgan'&block_trt!='Brazil')%>%
   rbind(AUS_morgan)%>%
   rbind(brazil)
 
-#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse_Oct2019.csv", row.names = F)
+#write.csv(plotssubset, "ClimateSoilsData/subset_plots_touse_Oct2019b.csv", row.names = F)
 
 ##merge these plots in with the community data
 data_subset<-dat%>%
@@ -99,15 +100,14 @@ export<-spave%>%
   left_join(climate)%>%
   select(-unid)
 
-#write.csv(export, "single_racs_climate_Oct2019.csv", row.names = F)
+#write.csv(export, "single_racs_climate_Oct2019b.csv", row.names = F)
 
 rich_evar_single<-community_structure(spave, abundance.var = "ave_relcov", replicate.var = "unid", metric = "Evar")%>%
   separate(unid, into=c("block_trt", "site"), sep="::")%>%
   left_join(key)%>%
   left_join(climate)%>%
-  filter(richness>4)%>%
-  filter(richness<300)
-###AUS_morgan korrack has 408 speices. There are no obvious problems with the data but we think this is an outlier and want to check it before we include it for further anlayses. 
+  filter(richness>4)
+
 
 ###we also lost 3 sites in tibet and 1 in australia that had 3 or 4 species 
 
@@ -127,7 +127,7 @@ BP<-spave%>%
 domeven<-rich_evar_single%>%
   left_join(BP)
 
-write.csv(domeven, "community_metrics_single_climate_Oct2019.csv", row.names=F)
+#write.csv(domeven, "community_metrics_single_climate_Oct2019b.csv", row.names=F)
 
 ###dominace is different than Evar. We will try doing these tests with these.
 panel.cor <- function(x, y, digits=2, prefix="", cex.cor) 
@@ -220,15 +220,6 @@ se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Evenness")+
   xlab("Number of Plots")
-
-# summary(lm(sdom~numplots, data=plotnum))
-# sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
-#   geom_point(aes(color=country), size=2)+
-#   scale_color_brewer(palette="Set1")+
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-#   ylab("Scaled Dominance")+
-#   xlab("Number of Plots")+
-#   labs(color = "Country")
 
 
 legend=gtable_filter(ggplot_gtable(ggplot_build(se)), "guide-box") 

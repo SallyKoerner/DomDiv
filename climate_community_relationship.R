@@ -1,5 +1,6 @@
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\megha\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
+setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
 library(grid)
 library(knitr)
@@ -18,13 +19,13 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
              axis.title.y=element_text(size=20, angle=90, vjust=0.5), axis.text.y=element_text(size=16),
              plot.title = element_text(size=24, vjust=2),
              panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-             legend.title=element_blank(), legend.text=element_text(size=20))
+             legend.title=element_text(size=20), legend.text=element_text(size=20))
 
 
 
 
 #import community metrics - site level (single RAC for a site)
-commSite <- read.csv('community_metrics_single_climate_Oct2019.csv')%>%
+commSite <- read.csv('community_metrics_single_climate_Oct2019b.csv')%>%
   group_by(block_trt)%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
@@ -61,10 +62,12 @@ richnessModelTable <- richnessModels%>%
 kable(richnessModelTable, 'html')%>%
   cat(., file = "richnessModelTable.html")
 
+
 #quadratic model - AIC=291.45
 summary(quadraticRichnessModel <- lmer(richness_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticRichnessModel)
 r.squaredGLMM(quadraticRichnessModel)
+
 #linear model - AIC=327.29
 summary(linearRichnessModel <- lmer(richness_scale~ai + (1|country), commSite))
 AIC(linearRichnessModel)
@@ -83,29 +86,32 @@ evarModelTable <- evarModels%>%
 kable(evarModelTable, 'html')%>%
   cat(., file = "evarModelTable.html")
 
+
 #quadratic model - AIC=319.10
 summary(quadraticEvenessModel <- lmer(Evar_scale~poly(ai,2) + (1|country), commSite))
 AIC(quadraticEvenessModel)
 r.squaredGLMM(quadraticEvenessModel)
-#quadratic model - AIC=323.96
+
+#evenness model - AIC=323.96
 summary(linearEvenessModel <- lmer(Evar_scale~ai + (1|country), commSite))
 AIC(linearEvenessModel)
 r.squaredGLMM(linearEvenessModel)
 
 #compare richness and evenness
-compareEvenModels <- commSite%>%
+compareRichEvenModels <- commSite%>%
   group_by(country)%>%
   do(model = lm(Evar_scale ~ richness_scale, data = .))%>%
   mutate(R2=summary(model)$r.squared, pval=summary(model)$coefficients[2,4], slope=summary(model)$coefficients[2], slope_err=summary(model)$coefficients[2,2], f=summary(model)$fstatistic[1], df_num=summary(model)$fstatistic[2], df_den=summary(model)$fstatistic[3])%>%
   left_join(climate)
 
-compareEvenModelTable <- compareEvenModels%>%
+compareRichEvenModelTable <- compareRichEvenModels%>%
   select(country, f, df_num, df_den, pval, R2, slope)%>%
   rename(Block=country)
 kable(compareEvenModelTable, 'html')%>%
   cat(., file = "compareEvenModelTable")
 
 #overall relationship
+
 #quadratic model - AIC=313.73
 summary(quadraticRichEvenModel <- lmer(Evar_scale~poly(richness_scale,2) + (1|country), commSite))
 AIC(quadraticRichEvenModel)
