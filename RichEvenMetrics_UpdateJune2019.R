@@ -160,7 +160,7 @@ pnum<-data_subset%>%
   group_by(block_trt, block, site)%>%
   summarize(n=length(plot))
 
-numplots<-data.frame(block_trt=c("Argentina", "AUS_Morgan", "Brazil","China3", "India","Kenya","NAmerica","SAfrica", "Tibet_ungrazed"), numplots=c(100,5,10,6,9,1,20,20,5))
+numplots<-data.frame(block_trt=c("Argentina", "AUS_Morgan", "Brazil","China3", "India","NAmerica","SAfrica", "Tibet_ungrazed"), numplots=c(100,5,10,6,9,20,20,5))
 
 #i have for india only 1 plot / site, not 9 as was orginally stated. not sure why there is a difference
 
@@ -175,7 +175,7 @@ plotnum<-domeven%>%
 summary(lm(richness~numplots, data=plotnum))
 r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
   geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
+  scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00",  "#A65628" ,"#F781BF","#377EB8"))+
 #  geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("Number of Plots")+
@@ -185,26 +185,28 @@ r<-ggplot(data=plotnum, aes(x=numplots, y = richness))+
 summary(lm(Evar~numplots, data=plotnum))
 e<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
   geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
-  geom_smooth(method="lm", color="black", se=F)+
+  scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00",  "#A65628" ,"#F781BF","#377EB8"))+
+  #  geom_smooth(method="lm", color="black", se=F)+
+  #geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("Number of Plots")+
   ylab("Evenness")+
   theme(legend.position = "none")
-
-summary(lm(BP_D~numplots, data=plotnum))
-d<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
-  geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
-#  geom_smooth(method="lm", color="black", se=F)+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  xlab("Number of Plots")+
-  ylab("Dominance")
+# 
+# summary(lm(BP_D~numplots, data=plotnum))
+# d<-ggplot(data=plotnum, aes(x=numplots, y = Evar))+
+#   geom_point(aes(color=country), size=2)+
+#   scale_color_manual(values=c("#E41A1C", "#999999", "#4DAF4A","#984EA3", "#F781BF", "#FFFF33", "#377EB8", "#A65628",  "#FF7F00"))+
+# #  geom_smooth(method="lm", color="black", se=F)+
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   xlab("Number of Plots")+
+#   ylab("Dominance")
 
 summary(lm(srich~numplots, data=plotnum))
 sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
   geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
+  scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00",  "#A65628" ,"#F781BF","#377EB8"))+
+  #  geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Richness")+
   xlab("Number of Plots")+
@@ -213,34 +215,34 @@ sr<-ggplot(data=plotnum, aes(x=numplots, y = srich))+
 summary(lm(sevar~numplots, data=plotnum))
 se<-ggplot(data=plotnum, aes(x=numplots, y = sevar))+
   geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
+  scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00",  "#A65628" ,"#F781BF","#377EB8"))+
+  #  geom_smooth(method="lm", color="black", se=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("Scaled Evenness")+
-  xlab("Number of Plots")+
-  theme(legend.position = "none")
+  xlab("Number of Plots")
 
-summary(lm(sdom~numplots, data=plotnum))
-sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
-  geom_point(aes(color=country), size=2)+
-  scale_color_brewer(palette="Set1")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  ylab("Scaled Dominance")+
-  xlab("Number of Plots")+
-  labs(color = "Country")
+# summary(lm(sdom~numplots, data=plotnum))
+# sd<-ggplot(data=plotnum, aes(x=numplots, y = sdom))+
+#   geom_point(aes(color=country), size=2)+
+#   scale_color_brewer(palette="Set1")+
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   ylab("Scaled Dominance")+
+#   xlab("Number of Plots")+
+#   labs(color = "Country")
 
 
-legend=gtable_filter(ggplot_gtable(ggplot_build(sd)), "guide-box") 
+legend=gtable_filter(ggplot_gtable(ggplot_build(se)), "guide-box") 
 grid.draw(legend)
 
 fig1<-
-  grid.arrange(arrangeGrob(r+theme(legend.position="none"),
-                           sr+theme(legend.position="none"),
-                           e+theme(legend.position="none"),
-                           se+theme(legend.position="none"),
-                           d+theme(legend.position="none"),
-                           sd+theme(legend.position="none"),
-                           ncol=2), legend, 
-               widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
+  # grid.arrange(arrangeGrob(r+theme(legend.position="none"),
+  #                          sr+theme(legend.position="none"),
+  #                          e+theme(legend.position="none"),
+  #                          se+theme(legend.position="none"),
+  #                          d+theme(legend.position="none"),
+  #                          sd+theme(legend.position="none"),
+  #                          ncol=2), legend, 
+  #              widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
 
 grid.arrange(arrangeGrob(r+theme(legend.position="none"),
                          sr+theme(legend.position="none"),
