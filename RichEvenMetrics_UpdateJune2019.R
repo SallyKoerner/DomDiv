@@ -10,7 +10,7 @@ library(gtable)
 library(grid)
 
 setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
-setwd("C:/Users/megha/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
+setwd("C:/Users/mavolio2/Dropbox/DomDiv_Workshop/Dominance_Diversity/")
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
 theme_set(theme_bw(12))
