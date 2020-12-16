@@ -343,7 +343,7 @@ RichEvenFacet <- ggplot(data=commSite2, aes(x=richness_scale, y=Evar_scale, colo
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
     geom_text(data=compareRichEvenModelTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
     theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
-    scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
+    scale_color_manual(values = c("#E41A1C", "#FF7F00", "#F781BF","#999999", "#A65628", "#377EB8",  "#984EA3", "#4DAF4A"))
   
   
 RichAridTable2<-richnessModelTable%>%
