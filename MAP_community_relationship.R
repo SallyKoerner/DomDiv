@@ -30,7 +30,9 @@ commSite <- read.csv('community_metrics_single_climate_Oct2019b.csv')%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
   rename(ai=dat.AI)%>%
-  filter(country!='Kenya')
+  filter(country!='Kenya')%>%
+  rename(oldcountry=country)%>%
+  mutate(country=ifelse(oldcountry=="China", "Inner Mongolia, China", ifelse(oldcountry=="Tibet", "Tibet, China", oldcountry)))
 
 
 #figure out climate mean, midpoint, min, max
@@ -112,8 +114,8 @@ richnessAllFig <- ggplot(data=subset(commSite, country!='Kenya'), aes(x=bio12, y
   geom_smooth(data=commSite, method = "lm", formula = y ~ x + I(x^2), color='black', size=2)+
   geom_point(size=3) +
  # theme(legend.position='none') +
-  annotate("text", x=10, y=3, label = "(a)", size=6)+
-  annotate("text", x=1600, y=3, label = expression(paste("",R^2 ,"= 0.13")), size=6)+
+  annotate("text", x=10, y=3, label = "(a)", size=4)+
+  annotate("text", x=1600, y=3, label = expression(paste("",R^2 ,"= 0.13")), size=4)+
   labs(color="Country")+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
@@ -126,8 +128,8 @@ evennessAllFig <- ggplot(data=commSite, aes(x=bio12, y=Evar_scale, color=country
   #geom_smooth(data=subset(commSite, country=='Brazil'|country=='China'|country=='Kenya'|country=='USA'|country=='South Africa'|country=='Argentina'|country=='Tibet'|country=="Australia"), method='lm', linetype='dashed', se=F) +
   #theme(legend.position='none') +
   labs(color="Gradient")+
-  annotate("text", x=10, y=4, label = "(b)", size=6)+
-  annotate("text", x=1600, y=4, label = expression(paste("",R^2 ,"= 0.05")), size=6)+
+  annotate("text", x=10, y=4, label = "(b)", size=4)+
+  annotate("text", x=1600, y=4, label = expression(paste("",R^2 ,"= 0.05")), size=4)+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
 legend=gtable_filter(ggplot_gtable(ggplot_build(evennessAllFig)), "guide-box") 
@@ -143,10 +145,10 @@ fig1<-
 
   
 commSite2<-commSite%>%
-    mutate(countrygroup=factor(country, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))
+    mutate(countrygroup=factor(country, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))
   
 RichMAPTable2<-richnessModelTable%>%
-    mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+    mutate(countrygroup=factor(Block, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
     mutate(r2=round(R2, digits=3))
 
 RichMAPFacet <- ggplot(data=commSite2, aes(x=bio12, y=richness_scale, color=countrygroup)) +
@@ -158,10 +160,10 @@ RichMAPFacet <- ggplot(data=commSite2, aes(x=bio12, y=richness_scale, color=coun
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
     geom_text(data=RichMAPTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
     theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
-    scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
+    scale_color_manual(values = c("#E41A1C", "#FF7F00", "#F781BF","#999999", "#A65628", "#377EB8",  "#984EA3", "#4DAF4A"))
 
 EvenMAPTable2<-evarModelTable%>%
-  mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+  mutate(countrygroup=factor(Block, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
   mutate(r2=round(R2, digits=3))
 
 EvenMAPFacet <- ggplot(data=commSite2, aes(x=bio12, y=Evar_scale, color=countrygroup)) +
@@ -173,4 +175,5 @@ EvenMAPFacet <- ggplot(data=commSite2, aes(x=bio12, y=Evar_scale, color=countryg
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
   geom_text(data=EvenMAPTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
   theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
-  scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
+  scale_color_manual(values = c("#E41A1C", "#FF7F00", "#F781BF","#999999", "#A65628", "#377EB8",  "#984EA3", "#4DAF4A"))
+
