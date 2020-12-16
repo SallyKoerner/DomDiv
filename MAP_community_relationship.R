@@ -1,5 +1,7 @@
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
+setwd('C:\\Users\\mavolio2\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
+
 library(grid)
 library(knitr)
 library(kableExtra)
@@ -150,7 +152,7 @@ RichMAPTable2<-richnessModelTable%>%
 RichMAPFacet <- ggplot(data=commSite2, aes(x=bio12, y=richness_scale, color=countrygroup)) +
     geom_point() +
     xlab('Mean Annual Precipitation') + ylab('Scaled Richness') +
-    geom_smooth(data=subset(commSite2, country=='Argentina'|country=='India'|country=='South Africa'|country=='USA'|country=="Tibet"), method='lm', se=F) +
+    geom_smooth(data=subset(commSite2, country=='India'|country=='South Africa'|country=='USA'|country=="Tibet"), method='lm', se=F) +
     theme(legend.position='none') +
     facet_wrap(~countrygroup)+
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+

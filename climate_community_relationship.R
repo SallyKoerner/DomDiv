@@ -1,5 +1,8 @@
-setwd('C:\\Users\\megha\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
+setwd('C:\\Users\\mavolio2\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
+
+#updated 11/12/2020 - use this file!!! This is what is used in the publication
+
 
 library(grid)
 library(knitr)
@@ -28,7 +31,8 @@ commSite <- read.csv('community_metrics_single_climate_Oct2019b.csv')%>%
   group_by(block_trt)%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
-  rename(ai=dat.AI)
+  rename(ai=dat.AI)%>%
+  filter(country!="Kenya")
 
 
 #figure out climate mean, midpoint, min, max
@@ -96,6 +100,7 @@ summary(linearEvenessModel <- lmer(Evar_scale~ai + (1|country), commSite))
 AIC(linearEvenessModel)
 r.squaredGLMM(linearEvenessModel)
 
+
 #compare richness and evenness
 compareRichEvenModels <- commSite%>%
   group_by(country)%>%
@@ -106,7 +111,7 @@ compareRichEvenModels <- commSite%>%
 compareRichEvenModelTable <- compareRichEvenModels%>%
   select(country, f, df_num, df_den, pval, R2, slope)%>%
   rename(Block=country)
-kable(compareEvenModelTable, 'html')%>%
+kable(compareRichEvenModelTable, 'html')%>%
   cat(., file = "compareEvenModelTable")
 
 #overall relationship
@@ -321,14 +326,14 @@ avearid<-commSite%>%
 commSite2<-commSite%>%
     mutate(countrygroup=factor(country, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))
   
-compareEvenModelTable2<-compareEvenModelTable%>%
+compareRichEvenModelTable2<-compareRichEvenModelTable%>%
     mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
     mutate(r2=round(R2, digits=3))
   
 RichEvenFacet <- ggplot(data=commSite2, aes(x=richness_scale, y=Evar_scale, color=countrygroup)) +
     geom_point() +
     xlab('Scaled Richness') + ylab('Scaled Evenness') +
-    geom_smooth(data=subset(commSite2, country=='India'|country=='Brazil'|country=='USA'|country=="China"), method='lm', se=F) +
+    geom_smooth(data=subset(commSite2, country=='India'|country=="China"), method='lm', se=F) +
     theme(legend.position='none') +
     facet_wrap(~countrygroup)+
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+

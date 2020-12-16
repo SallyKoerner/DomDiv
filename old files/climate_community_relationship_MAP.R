@@ -1,5 +1,7 @@
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\DomDiv_Workshop\\Dominance_Diversity')
 
+setwd('C:\\Users\\mavolio2\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
+
 library(grid)
 library(knitr)
 library(kableExtra)
