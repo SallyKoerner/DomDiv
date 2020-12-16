@@ -32,7 +32,9 @@ commSite <- read.csv('community_metrics_single_climate_Oct2019b.csv')%>%
   mutate(Evar_scale=scale(Evar), richness_scale=scale(richness), BP_scale=scale(BP_D))%>%
   ungroup()%>%
   rename(ai=dat.AI)%>%
-  filter(country!="Kenya")
+  filter(country!="Kenya")%>%
+  rename(oldcountry=country)%>%
+  mutate(country=ifelse(oldcountry=="China", "Inner Mongolia, China", ifelse(oldcountry=="Tibet", "Tibet, China", oldcountry)))
 
 
 #figure out climate mean, midpoint, min, max
@@ -210,6 +212,7 @@ evennessAllFig <- ggplot(data=commSite, aes(x=ai, y=Evar_scale, color=country)) 
   annotate("text", x=1.3, y=4, label = expression(paste("",R^2 ,"= 0.05")), size=4)+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
+
 # summary(lm(slope~geo_mean_AI, data=evarModels))
 # 
 # evennessSlopeFig <- ggplot(data=evarModels, aes(x=geo_mean_AI, y=slope, color=block_trt)) +
@@ -291,12 +294,12 @@ evennessRichFig <- ggplot(data=commSite, aes(x=richness_scale, y=Evar_scale, col
 
 summary(lm(slope~geo_mean_AI, data=compareEvenModels))
 
-compareSlopeFig <- ggplot(data=compareEvenModels, aes(x=geo_mean_AI, y=slope, color=country)) +
+compareSlopeFig <- ggplot(data=compareRichEvenModels, aes(x=geo_mean_AI, y=slope, color=country)) +
   geom_point(size=3) +
   scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00",  "#A65628" ,"#F781BF","#377EB8"))+
   geom_errorbarh(aes(xmin=min_AI, xmax=max_AI)) +
   geom_errorbar(aes(ymin=slope-slope_err, ymax=slope+slope_err)) +
-  xlab('Aridity') + ylab('Slope of Evenness vs Richness') +
+  xlab('Aridity Index') + ylab('Slope of Evenness vs Richness') +
   geom_hline(yintercept=0) +
   annotate("text",x=Inf, y=-Inf, hjust=1.1, vjust=-1, label = expression(paste("",R^2 ,"= 0.02, p=0.331")), size=4)+
   annotate("text", x=0.1, y=1.2, label = "(b)", size=4)+
@@ -324,55 +327,56 @@ avearid<-commSite%>%
     summarize(mean=mean(ai))
   
 commSite2<-commSite%>%
-    mutate(countrygroup=factor(country, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))
+    mutate(countrygroup=factor(country, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))
   
 compareRichEvenModelTable2<-compareRichEvenModelTable%>%
-    mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
-    mutate(r2=round(R2, digits=3))
+    mutate(countrygroup=factor(Block, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+    mutate(r2=round(R2, digits=3))%>%
+  unique()
   
 RichEvenFacet <- ggplot(data=commSite2, aes(x=richness_scale, y=Evar_scale, color=countrygroup)) +
     geom_point() +
     xlab('Scaled Richness') + ylab('Scaled Evenness') +
-    geom_smooth(data=subset(commSite2, country=='India'|country=="China"), method='lm', se=F) +
+    geom_smooth(data=subset(commSite2, country=='India'|country=="Inner Mongolia, China"), method='lm', se=F) +
     theme(legend.position='none') +
     facet_wrap(~countrygroup)+
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
-    geom_text(data=compareEvenModelTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
+    geom_text(data=compareRichEvenModelTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
     theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
     scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
   
   
 RichAridTable2<-richnessModelTable%>%
-    mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+    mutate(countrygroup=factor(Block, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
     mutate(r2=round(R2, digits=3))%>%
   filter(countrygroup!='NA')
 
 RichAridFacet <- ggplot(data=subset(commSite2, country!='Kenya'), aes(x=ai, y=richness_scale, color=countrygroup)) +
     geom_point() +
-    xlab('Aridity') + ylab('Scaled Richness') +
-    geom_smooth(data=subset(commSite2, country=='India'|country=='South Africa'|country=='USA'|country=="Tibet"), method='lm', se=F) +
+    xlab('Aridity Index') + ylab('Scaled Richness') +
+    geom_smooth(data=subset(commSite2, country=='India'|country=='South Africa'|country=='USA'|country=="Tibet, China"), method='lm', se=F) +
     theme(legend.position='none') +
     facet_wrap(~countrygroup)+
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
     geom_text(data=RichAridTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
     theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
-    scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
+    scale_color_manual(values = c("#E41A1C", "#FF7F00", "#F781BF","#999999", "#A65628", "#377EB8",  "#984EA3", "#4DAF4A"))
 
 EvenAridTable2<-evarModelTable%>%
-  mutate(countrygroup=factor(Block, levels = c("Argentina", "China","Tibet", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
+  mutate(countrygroup=factor(Block, levels = c("Argentina", "Inner Mongolia, China","Tibet, China", "Australia", "South Africa", "USA", "India", "Brazil")))%>%
   mutate(r2=round(R2, digits=3))%>%
   filter(countrygroup!='NA')
 
 EvenAridFacet <- ggplot(data=subset(commSite2, country!='Kenya'), aes(x=ai, y=Evar_scale, color=countrygroup)) +
   geom_point() +
-  xlab('Aridity') + ylab('Scaled Evenness') +
+  xlab('Aridity Index') + ylab('Scaled Evenness') +
   geom_smooth(data=subset(commSite2, country=='India'), method='lm', se=F) +
   theme(legend.position='none') +
   facet_wrap(~countrygroup)+
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())+
   geom_text(data=EvenAridTable2, mapping=aes(x=Inf, y = Inf, label = r2), hjust=1.05, vjust=1.5, color="black", size=3)+
   theme(strip.text.x = element_text(margin = margin(.05, 0, .05, 0, "cm")))+
-  scale_color_manual(values = c("#E41A1C", "#984EA3", "#F781BF","#999999", "#A65628", "#377EB8",  "#FF7F00", "#4DAF4A"))
+  scale_color_manual(values = c("#E41A1C", "#FF7F00", "#F781BF","#999999", "#A65628", "#377EB8",  "#984EA3", "#4DAF4A"))
 
   
   
