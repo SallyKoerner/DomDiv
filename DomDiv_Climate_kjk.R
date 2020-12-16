@@ -31,17 +31,21 @@ write.csv(dat,file="GPS_AllSites_FIXED_112020.csv")
 dat <- read.csv('GPS_AllSites_FIXED_112020.csv')
 
 ###subsetting data to include only sites of interest for the map plot
-country_list <- c('Argentina','Australia','Brazil','Inner Mongolia, China','India','SouthAfrica','Tibet, China','USA')
+country_list <- c('Argentina','Australia','Brazil','Inner Mongolia, China','India','South Africa','Tibet, China','USA')
 dat <- dat[which(dat$Block%in%country_list),]
 
 
 ###choosing color palette for biplots of MAP and MAT
 
-scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00", "#A65628" ,"#F781BF","#377EB8"))
+scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#FF7F00","#984EA3", "#A65628" ,"#F781BF","#377EB8"))
 color_scale <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
 colnames(color_scale) <- c('country','color')
 color_scale$country <- country_list
-color_scale$color <- c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00", "#A65628" ,"#F781BF","#377EB8")
+color_scale$color <- c("#E41A1C", "#999999","#4DAF4A", "#984EA3","#FF7F00", "#A65628" ,"#F781BF","#377EB8")
+color_scale2 <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
+colnames(color_scale2) <- c('country','color')
+color_scale2$country <- country_list
+color_scale2$color<- c("#E41A1C", "#999999","#4DAF4A", "#FF7F00", "#984EA3","#A65628" ,"#F781BF","#377EB8")
 
 ###reading in bioclim variable layers 
 r.bio <- getData('worldclim',var='bio',res=5)
@@ -87,7 +91,7 @@ theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=elemen
 
 ggplot(data=dat.clim, aes(x=bio12, y=bio1/10)) +
   geom_point(aes(color=Block), size=3) +
-  scale_color_manual(values=color_scale$color) +
+  scale_color_manual(values=color_scale2$color) +
   xlab('Mean Annual Precipitation (mm)') + ylab('Mean Annual Temperature (C)') +
   theme(legend.position='bottom')
 #export at 900x600
