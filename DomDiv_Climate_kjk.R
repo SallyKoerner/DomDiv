@@ -41,11 +41,11 @@ scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#FF7F00","#984EA3", 
 color_scale <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
 colnames(color_scale) <- c('country','color')
 color_scale$country <- country_list
-color_scale$color <- c("#E41A1C", "#999999","#4DAF4A", "#984EA3","#FF7F00", "#A65628" ,"#F781BF","#377EB8")
+color_scale$color <- c("#E41A1C", "#999999","#4DAF4A", "#FF7F00", "#984EA3","#A65628" ,"#F781BF","#377EB8")
 color_scale2 <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
 colnames(color_scale2) <- c('country','color')
 color_scale2$country <- country_list
-color_scale2$color<- c("#E41A1C", "#999999","#4DAF4A", "#FF7F00", "#984EA3","#A65628" ,"#F781BF","#377EB8")
+color_scale2$color<- c("#E41A1C", "#999999","#4DAF4A", "#984EA3","#FF7F00", "#A65628" ,"#F781BF","#377EB8")
 
 ###reading in bioclim variable layers 
 r.bio <- getData('worldclim',var='bio',res=5)
