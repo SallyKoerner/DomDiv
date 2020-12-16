@@ -31,17 +31,21 @@ write.csv(dat,file="GPS_AllSites_FIXED_112020.csv")
 dat <- read.csv('GPS_AllSites_FIXED_112020.csv')
 
 ###subsetting data to include only sites of interest for the map plot
-country_list <- c('Argentina','Australia','Brazil','China','India','SouthAfrica','Tibet','USA')
+country_list <- c('Argentina','Australia','Brazil','Inner Mongolia, China','India','South Africa','Tibet, China','USA')
 dat <- dat[which(dat$Block%in%country_list),]
 
 
 ###choosing color palette for biplots of MAP and MAT
 
-scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00", "#A65628" ,"#F781BF","#377EB8"))
+scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#FF7F00","#984EA3", "#A65628" ,"#F781BF","#377EB8"))
 color_scale <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
 colnames(color_scale) <- c('country','color')
 color_scale$country <- country_list
-color_scale$color <- c("#E41A1C", "#999999","#4DAF4A","#984EA3", "#FF7F00", "#A65628" ,"#F781BF","#377EB8")
+color_scale$color <- c("#E41A1C", "#999999","#4DAF4A", "#984EA3","#FF7F00", "#A65628" ,"#F781BF","#377EB8")
+color_scale2 <- as.data.frame(matrix(,data=NA,nrow=8,ncol=2))
+colnames(color_scale2) <- c('country','color')
+color_scale2$country <- country_list
+color_scale2$color<- c("#E41A1C", "#999999","#4DAF4A", "#FF7F00", "#984EA3","#A65628" ,"#F781BF","#377EB8")
 
 ###reading in bioclim variable layers 
 r.bio <- getData('worldclim',var='bio',res=5)
@@ -65,17 +69,32 @@ dat.clim$color <- color_scale$color[match(dat$Block,color_scale$country)]
 ###checking plotting color scale
 ggplot(data.frame(x = rnorm(10000), y = rnorm(10000)), aes(x = x, y = y)) +
   geom_hex() + coord_fixed() +
-  scale_fill_viridis() + theme_bw()
+  scale_fill_viridis() + theme_bw() + theme(legend.position="bottom")
 
 #image(AI,col=alpha(rev(viridis(256)),.9),asp=1,axes=FALSE,xaxs="i",xaxt='n',yaxt='n',ann=FALSE)
-map("world",fill=TRUE,col=alpha("gray",.2),lwd=.3,ylim=c(-60,90),mar=c(0,0,0,0),border=alpha("gray10",alpha=.6))
-points(points,cex=.6,col=dat.clim$color,pch=16)
+map("world",fill=TRUE,col=alpha("gray",.2),lwd=.7,ylim=c(-60,90),mar=c(0,0,0,0),border=alpha("gray10",alpha=.6))
+points(points,cex=.8,col=dat.clim$color,pch=16)
+box()
 #pnts <- cbind(x=c(-160,-155,-155,-160),y=c(10,10,-30,-30))
 #cols <- rev(viridis(12)) 
 #legend.gradient(pnts,cols,title="Aridity Index",cex=.6,limits=c(0,13.5))
-legend(x=-180,y=40,legend=c('Argentina','Australia','Brazil','China','India','South Africa','Tibet','USA'),cex=.7,col=color_scale$color,bty="n",pt.cex=1.2,pch=16)
-box()
+# legend(x=-180,y=40,legend=c('Argentina','Australia','Brazil','Inner Mongolia, China','India','South Africa','Tibet, China','USA'),cex=.7,col=color_scale$color,bty="n",pt.cex=1.2,pch=16)
 #text()
 
 ###generating MAP and MAT biplot
-plot(dat.clim$bio12,dat.clim$bio1/10,col=dat.clim$color,pch=16,cex=1.2,xlab="Mean Annual Precipitation (mm)",ylab="Mean Annual Temperature (C)",las=1)
+theme_set(theme_bw())
+theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=element_text(size=16),
+             axis.title.y=element_text(size=20, angle=90, vjust=0.5), axis.text.y=element_text(size=16),
+             plot.title = element_text(size=24, vjust=2),
+             panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+             legend.title=element_blank(), legend.text=element_text(size=20))
+
+ggplot(data=dat.clim, aes(x=bio12, y=bio1/10)) +
+  geom_point(aes(color=Block), size=3) +
+  scale_color_manual(values=color_scale2$color) +
+  xlab('Mean Annual Precipitation (mm)') + ylab('Mean Annual Temperature (C)') +
+  theme(legend.position='bottom')
+#export at 900x600
+
+# plot(dat.clim$bio12,dat.clim$bio1/10,col=dat.clim$color,pch=16,cex=1.2,xlab="Mean Annual Precipitation (mm)",ylab="Mean Annual Temperature (C)",las=1)
+
