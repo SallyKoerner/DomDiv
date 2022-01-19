@@ -30,11 +30,13 @@ norm_metrics <- rich_evenness_clmt %>%
   ) %>%
   dplyr::select(block_trt, richness_norm, Evar_norm) %>%
   ungroup()
-?scale
+
 scaled_slopes <- norm_metrics %>%
   group_by(block_trt) %>%
   summarize(slope_norm=lm(richness_norm ~ Evar_norm)$coeff[[2]],
-            slope_norm_se=summary(lm(richness_norm ~ Evar_norm))$coefficients[2,2])
+            slope_norm_se=summary(lm(richness_norm ~ Evar_norm))$coefficients[2,2],
+            pval=summary(lm(richness_norm ~ Evar_norm))$coefficients[2,4]
+            )
             
 ###
 ### Calculating aridity for each block
