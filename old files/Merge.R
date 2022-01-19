@@ -1,4 +1,4 @@
-setwd("~/Dropbox/Dominance_Diversity")
+setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity")
 
 library(ggplot2)
 library(MASS)
@@ -214,7 +214,7 @@ Kenya2<-Kenya%>%
 head(Kenya2)
 
 ###Import NA, spread & gather, so all zeros across all sites, get so all have same columns
-setwd("~/Dropbox/Dominance_Diversity/North_America/")
+setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/North_America/")
 na.files <- list.files(pattern=".csv")
 
 for(i in na.files){
@@ -239,7 +239,7 @@ for(i in na.files){
 }
 head(NorthAmerica) 
 ###Import SAfrica, spread & gather, so all zeros across all sites, get so all have same columns
-setwd("~/Dropbox/Dominance_Diversity/South_Africa")
+setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/South_Africa")
 na.files <- list.files(pattern=".csv")
 
 for(i in na.files){
@@ -265,7 +265,7 @@ for(i in na.files){
 head(SouthAfrica) 
 
 ###Import Canada, spread & gather, so all zeros across all sites, get so all have same columns
-setwd("~/Dropbox/Dominance_Diversity")
+setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity")
 SAmerica<-read.csv("./South_America/Cesa_Argentina_v2.csv")%>%
   select(-plot, -year, -exage)%>%
   rename(plot=block)%>%
@@ -304,7 +304,6 @@ Tanzania2<-Tanzania%>%
 head(Tanzania2)
 
 ###Import Tibet, spread & gather, so all zeros across all sites, get so all have same columns
-setwd("~/Dropbox/Dominance_Diversity")
 Tibet<-read.csv("./Tibet/Tibet(25)_v3.csv")%>%
   select(-block, -year, -exage)%>%
   mutate(block="Tibet")%>%
@@ -319,7 +318,6 @@ Tibet2<-Tibet%>%
 head(Tibet2)
 
 ###Import Brazil, spread & gather, so all zeros across all sites, get so all have same columns
-setwd("~/Dropbox/Dominance_Diversity")
 Brazil<-read.csv("./Brazil/BrazilData.csv")%>%
   rename(site=Plot_code)%>%
   rename(plot=Sampling.unit)%>%
@@ -337,11 +335,32 @@ Brazil<-read.csv("./Brazil/BrazilData.csv")%>%
          species=as.character(species), cover=as.numeric(cover))
 head(Brazil)
 
+###Bring in China2
+setwd("~/Dropbox/DomDiv_Workshop/Dominance_Diversity/China2")
+na.files <- list.files(pattern=".csv")
+
+for(i in na.files){
+  data <- read.csv(i)%>%
+    mutate(trt=0)%>%
+    select(-date)%>%
+    replace(is.na(.), 0)%>%
+    select(block, site, trt, plot, everything())
+  
+  data2<-data%>%
+    mutate(block=as.character(block), site=as.character(site), 
+           plot=as.character(plot), trt=as.character(trt), 
+           species=as.character(species), cover=as.numeric(cover))
+  
+  ifelse(i == na.files[1],China2 <- data2, China2 <- bind_rows(China2,data2))
+}
+China2<-China2%>%
+  select(-X)
+head(China2) 
+
 #BIND all together
 AllData<-bind_rows(AUS2, Brazil, Canada2, China_All, India2, Kenya2, NorthAmerica, 
-                   SAmerica2, SouthAfrica, Tanzania2, Tibet2)
-
-head(Canada2)
+                   SAmerica2, SouthAfrica, Tanzania2, Tibet2, China2)
+write.csv(AllData, file="~/Dropbox/DomDiv_Workshop/Dominance_Diversity/AllData_13Dec2018.csv")
 
 #Brazil metadat
 Brazilmeta<-read.csv("./Brazil/Brazil_metadata.csv")
