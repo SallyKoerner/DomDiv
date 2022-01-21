@@ -1,6 +1,6 @@
 setwd('C:\\Users\\mavolio2\\Dropbox\\DomDiv_Workshop\\Dominance_Diversity')
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\Dominance_Diversity')
-
+setwd("C:\\Users\\wilco\\OneDrive - University of Wyoming\\Cross_workstation_workspace\\Working groups\\domdiv\\Dominance_Diversity\\")
 #updated 11/12/2020 - use this file!!! This is what is used in the publication
 
 
@@ -16,7 +16,7 @@ library(gtable)
 library(grid)
 
 ###ggplot theme set
-theme_set(theme_bw(12))
+theme_set(theme_classic(12))
 theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=element_text(size=16),
              axis.title.y=element_text(size=20, angle=90, vjust=0.5), axis.text.y=element_text(size=16),
              plot.title = element_text(size=24, vjust=2),
@@ -275,8 +275,11 @@ fig1<-
                            #dominanceAllFig+theme(legend.position="none"),
                            ncol=1), legend, 
                widths=unit.c(unit(1, "npc") - legend$width, legend$width),nrow=1)
-
-
+fig1<-
+  arrangeGrob(richnessAllFig+theme(legend.position="none"),
+                           evennessAllFig+theme(legend.position="none"),
+                           #dominanceAllFig+theme(legend.position="none"),
+                           ncol=1)
 #Evar v richness
 
 
