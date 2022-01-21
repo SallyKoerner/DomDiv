@@ -2,10 +2,12 @@
 ###EJ Forrestel, revised 20 November 2019 ; Komatsu revised Nov 2020
 
 ###loading packages
-require(sp);require(raster);require(SPEI);require(readxl);require(rgdal);require(maptools);require(viridis);library(ggplot2);require(hexbin);require(httr);require(rasterVis);require(maps);require(RColorBrewer);require(SDMTools)
+require(sp);require(raster);require(SPEI);require(readxl);require(rgdal);
+require(maptools);require(viridis);library(ggplot2);require(hexbin);require(httr);
+require(rasterVis);require(maps);require(RColorBrewer);require(SDMTools)
 
 setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\DomDivClimate')
-
+setwd('C:\\Users\\wilco\\OneDrive - University of Wyoming\\Cross_workstation_workspace\\Working groups\\domdiv\\')
 
 ######CLEANING STEPS FOR ORIGINAL DATA FROM SALLY####
 ###reading in original Excel file and cleaning up the coordinates and spitting back out as a csv
@@ -13,6 +15,8 @@ dat <- read_excel('GPS_AllSites_update11122020.xlsx')
 dat <- as.data.frame(dat)
 dat$GPS_long <- as.numeric(dat$GPS_long)
 dat$GPS_lat <- as.numeric(dat$GPS_lat)
+
+
 
 ###Step 1, flipping coorindates for the Kenya sites
 temp <- dat$GPS_lat[which(dat$Block=="Kenya")]
@@ -34,7 +38,6 @@ dat <- read.csv('GPS_AllSites_FIXED_112020.csv')
 country_list <- c('Argentina','Australia','Brazil','Inner Mongolia, China','India','South Africa','Tibet, China','USA')
 dat <- dat[which(dat$Block%in%country_list),]
 
-
 ###choosing color palette for biplots of MAP and MAT
 
 scale_color_manual(values=c("#E41A1C", "#999999","#4DAF4A","#FF7F00","#984EA3", "#A65628" ,"#F781BF","#377EB8"))
@@ -54,8 +57,9 @@ r.bio <- getData('worldclim',var='bio',res=5)
 coords <- data.frame(as.numeric(dat$GPS_long),as.numeric(dat$GPS_lat))
 points <- SpatialPoints(coords,proj4string = r.bio@crs)
 dat.bio <- extract(r.bio,points)
+
 ###reading in AI data
-AI <- raster('C:\\Users\\lapie\\Dropbox (Smithsonian)\\working groups\\GEx working groups\\DomDiv_Workshop\\DomDivClimate\\AI_annual\\AI_annual\\ai_yr')
+AI <- raster('AI_annual\\AI_annual\\ai_yr')
 values(AI) <- log(values(AI))
 dat.AI <- extract(AI,points)
 
@@ -94,6 +98,8 @@ ggplot(data=dat.clim, aes(x=bio12, y=bio1/10)) +
   scale_color_manual(values=color_scale2$color) +
   xlab('Mean Annual Precipitation (mm)') + ylab('Mean Annual Temperature (C)') +
   theme(legend.position='bottom')
+
+
 #export at 900x600
 
 # plot(dat.clim$bio12,dat.clim$bio1/10,col=dat.clim$color,pch=16,cex=1.2,xlab="Mean Annual Precipitation (mm)",ylab="Mean Annual Temperature (C)",las=1)
